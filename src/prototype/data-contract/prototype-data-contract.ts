@@ -929,6 +929,53 @@ export const prototypeDataContract = definePrototypeDataContract({
             note: "El equipo legal y TI deben validar los impedimentos absolutos para la transferencia.",
           },
         },
+        cantidadEscriturasInmobiliariasAsignadas: {
+          id: "cantidadEscriturasInmobiliariasAsignadas",
+          productDescription:
+            "Cantidad de escrituras inmobiliarias incluidas en las que esta persona ya fue elegida como tercero de confianza.",
+          dataType: "number",
+          derivation:
+            "Cuenta por RUT las gestiones principales de aporte inmobiliario SRL, compraventa de inmueble, compraventa de inmueble y usufructo, cesión de derechos, compraventa de nuda propiedad y cesión de derechos hereditarios. Excluye la gestión actual, mandatos, liquidación de sociedad conyugal y bienes individuales dentro de una misma escritura.",
+          required: false,
+          usage: {
+            visible: true,
+            editable: false,
+            calculated: true,
+            technical: false,
+          },
+          usedIn: ["Validación del RUT del tercero de confianza"],
+          origin: "generatedByUsability",
+          source: { kind: "derived" },
+          dataClassification: "sensitive",
+          technicalValidation: {
+            status: "pendingTi",
+            note: "TI debe validar la consulta transversal por cliente, los estados de gestión que participan y la aplicación concurrente del máximo de dos escrituras.",
+          },
+        },
+        estadoLimiteEscriturasInmobiliarias: {
+          id: "estadoLimiteEscriturasInmobiliarias",
+          productDescription:
+            "Estado que informa si el tercero está disponible, corresponde a su segundo uso o ya alcanzó el máximo permitido.",
+          dataType: "enum",
+          enumValues: ["disponible", "segundoUso", "limiteAlcanzado"],
+          derivation:
+            "Disponible con cero usos previos, segundoUso con uno y limiteAlcanzado con dos o más.",
+          required: false,
+          usage: {
+            visible: true,
+            editable: false,
+            calculated: true,
+            technical: false,
+          },
+          usedIn: ["Ayuda y bloqueo junto al RUT del tercero de confianza"],
+          origin: "generatedByUsability",
+          source: { kind: "derived" },
+          dataClassification: "sensitive",
+          technicalValidation: {
+            status: "pendingTi",
+            note: "TI y el equipo legal deben confirmar la fuente definitiva y aplicar esta invariante también en backend.",
+          },
+        },
         aceptaRiesgosTransferencia: {
           id: "aceptaRiesgosTransferencia",
           productDescription:

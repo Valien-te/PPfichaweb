@@ -153,6 +153,21 @@ un certificado emitido por psiquiatra o neurólogo.
 
 Fuente: [`src/features/pasos/tercero-risk-rules.ts`](src/features/pasos/tercero-risk-rules.ts).
 
+### Máximo de escrituras inmobiliarias por tercero
+
+Una misma persona puede ser tercero de confianza en un máximo de dos escrituras entre:
+Aporte inmobiliario SRL, Compraventa de inmueble, Compraventa de inmueble y usufructo,
+Cesión de derechos, Compraventa de nuda propiedad y Cesión de derechos hereditarios.
+La comparación se realiza por RUT normalizado y considera cada gestión principal una sola
+vez, aunque contenga varios inmuebles. Liquidación de sociedad conyugal y los mandatos
+vinculados quedan expresamente excluidos.
+
+El segundo uso se informa junto al RUT y continúa permitido. Un tercer uso muestra un
+error en una fila completa bajo ambos campos de esa línea y bloquea el guardado sin
+desalinear la grilla.
+
+Fuente: [`src/features/pasos/tercero-inmobiliario-rules.ts`](src/features/pasos/tercero-inmobiliario-rules.ts).
+
 ### Cesión de derechos hereditarios
 
 La comuna de cada inmueble determina a quién puede elegirse:
@@ -290,6 +305,7 @@ ai/                              # contexto, pautas y protocolo del proyecto Lex
 
 El panel de simulación permite:
 
+- abrir un caso especial que intenta usar al mismo tercero en una tercera escritura inmobiliaria;
 - crear gestiones sintéticas para los contratos disponibles;
 - cambiar el estado de una gestión;
 - abrir directamente su etapa de documentos;

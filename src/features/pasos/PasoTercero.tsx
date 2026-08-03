@@ -29,6 +29,7 @@ import {
   getClienteDatos,
   sincronizarMandatoFirma,
   useGestion,
+  useGestiones,
 } from "../gestiones-store";
 import { resolverReglaTerceroCesionHereditaria } from "./cesion-hereditaria-tercero-rules";
 import {
@@ -36,6 +37,7 @@ import {
   requierenDefinirFirmaConjunta,
   type TipoMandatoFirma,
 } from "./firma-mandato-rules";
+import { evaluarLimiteTerceroInmobiliario } from "./tercero-inmobiliario-rules";
 import {
   calcularEdad,
   debeEvaluarFacultadesMentales,
@@ -276,6 +278,7 @@ export function PasoTercero({
   onSiguiente,
 }: PasoTerceroProps) {
   const gestion = useGestion(gestionId);
+  const gestiones = useGestiones();
   const gestionOrigen = useGestion(gestion?.gestionOrigenId ?? "__sin-gestion-origen__");
   const clienteDatos = getClienteDatos();
   const nombreContrato = gestion?.nombre || "";
@@ -453,6 +456,15 @@ export function PasoTercero({
   });
 
   const [aceptaRiesgos, setAceptaRiesgos] = useState(false);
+
+  // La regla se calcula con todas las escrituras del cliente y excluye la gestión
+  // actual. Los mandatos y la liquidación de sociedad conyugal no entran al conteo.
+  const limiteTerceroInmobiliario = evaluarLimiteTerceroInmobiliario(
+    gestiones,
+    gestionId,
+    nombreContrato,
+    tercero.rut,
+  );
 
   const edadSegundoSocio = esSegundoSocio ? calcularEdad(tercero.fechaNacimiento) : null;
   const segundoSocioMenorEdad = edadSegundoSocio !== null && edadSegundoSocio < 18;
@@ -650,6 +662,7 @@ export function PasoTercero({
     const tRegimenValido = !tRegimenRequerido || tieneValor(tercero.regimenMatrimonial);
 
     if (!tValido || !tRegimenValido) return false;
+    if (limiteTerceroInmobiliario.estado === "limiteAlcanzado") return false;
     if (esCesionDerechosHereditarios) {
       // La relación con la herencia siempre debe declararse; una comuna restrictiva
       // impide continuar si la persona elegida no es también heredera.
@@ -759,6 +772,12 @@ export function PasoTercero({
       );
       return;
     }
+    if (limiteTerceroInmobiliario.estado === "limiteAlcanzado") {
+      toast.error(
+        "Esta persona ya participa como tercero de confianza en dos escrituras inmobiliarias. Elige a otra persona.",
+      );
+      return;
+    }
     if (!isFormValido()) {
       toast.warning("Por favor, completa todos los campos obligatorios antes de continuar.");
       return;
@@ -790,7 +809,7 @@ export function PasoTercero({
         requiereDatosAdministrador ? administrador : undefined,
       );
     } else {
-      completarTercero(
+      const terceroGuardado = completarTercero(
         gestionId,
         {
           ...tercero,
@@ -804,6 +823,12 @@ export function PasoTercero({
             : null
           : undefined,
       );
+      if (!terceroGuardado) {
+        toast.error(
+          "Esta persona ya participa como tercero de confianza en dos escrituras inmobiliarias. Elige a otra persona.",
+        );
+        return;
+      }
     }
     const tipoMandato =
       requiereDefinirFirmaConjunta &&
@@ -1275,9 +1300,16 @@ export function PasoTercero({
                         placeholder="Ej: 11.222.333-4"
                         value={tercero.rut}
                         onChange={(e) => handleTerceroChange("rut", e.target.value)}
-                        aria-invalid={Boolean(coincidenciaApoderado)}
+                        aria-invalid={Boolean(
+                          coincidenciaApoderado ||
+                            limiteTerceroInmobiliario.estado === "limiteAlcanzado",
+                        )}
                         aria-describedby={
-                          coincidenciaApoderado ? "apoderado-rut-coincidencia" : undefined
+                          coincidenciaApoderado
+                            ? "apoderado-rut-coincidencia"
+                            : limiteTerceroInmobiliario.estado !== "disponible"
+                              ? "tercero-rut-limite-inmobiliario"
+                              : undefined
                         }
                       />
                       {coincidenciaApoderado && (
@@ -1295,6 +1327,28 @@ export function PasoTercero({
                         </div>
                       )}
                     </div>
+                    {limiteTerceroInmobiliario.estado !== "disponible" && (
+                      <p
+                        id="tercero-rut-limite-inmobiliario"
+                        role={
+                          limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                            ? "alert"
+                            : "status"
+                        }
+                        className={`flex items-start gap-2 text-sm leading-relaxed sm:col-span-2 ${
+                          limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                            ? "text-red-700"
+                            : "text-primary"
+                        }`}
+                      >
+                        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                        <span>
+                          {limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                            ? "Esta persona ya fue elegida como tercero de confianza en dos escrituras inmobiliarias. Para continuar, debes elegir a otra persona."
+                            : "Esta persona ya está asociada a otra escritura inmobiliaria. Puedes elegirla en esta gestión, pero no podrá participar como tercero de confianza en una tercera."}
+                        </span>
+                      </p>
+                    )}
                     <div className="grid gap-1.5">
                       <Label htmlFor="tercero-fecha">Fecha de nacimiento</Label>
                       <Input

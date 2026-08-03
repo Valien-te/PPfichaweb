@@ -8,7 +8,7 @@ import { definePrototypeMockScenarios } from "./simulator-contract-schema";
  */
 export const prototypeMockScenarios = definePrototypeMockScenarios({
   scenariosVersion: "1",
-  datasetVersion: 2,
+  datasetVersion: 3,
   defaultScenarioId: "base",
   scenarios: {
     base: {
@@ -27,7 +27,8 @@ export const prototypeMockScenarios = definePrototypeMockScenarios({
     edgeCases: {
       id: "edgeCases",
       name: "Casos límite",
-      description: "Escenario pendiente de completar según la experiencia.",
+      description:
+        "Casos especiales, incluido el límite de dos escrituras inmobiliarias por tercero de confianza.",
       entities: {},
     },
   },

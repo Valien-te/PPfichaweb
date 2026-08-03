@@ -1,5 +1,5 @@
 import { FileText, Plus, Settings, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { Button } from "@/shared/components/base/Button";
@@ -10,6 +10,7 @@ import {
   eliminarGestion,
   type EstadoDocumentoSimulado,
   simularEstadoDocumento,
+  simularLimiteTerceroInmobiliario,
   useGestiones,
 } from "../gestiones-store";
 import type { EstadoGestion } from "../mock-data";
@@ -38,6 +39,21 @@ export function SimulatorPanel() {
     setIsOpen(false);
     navigate("/gestion/" + gestionId + "/documentos");
   };
+
+  const handleProbarLimiteTercero = () => {
+    const gestionId = simularLimiteTerceroInmobiliario();
+    setIsOpen(false);
+    navigate("/gestion/" + gestionId + "/tercero");
+  };
+
+  useEffect(() => {
+    // Deep link exclusivo del simulador para capturas y revisión reproducible.
+    if (new URLSearchParams(window.location.search).get("simulador") !== "limite-tercero") {
+      return;
+    }
+    const gestionId = simularLimiteTerceroInmobiliario();
+    navigate("/gestion/" + gestionId + "/tercero", { replace: true });
+  }, [navigate]);
 
   if (!isOpen) {
     return (
@@ -68,6 +84,18 @@ export function SimulatorPanel() {
       </div>
 
       <div className="space-y-7 overflow-y-auto p-5">
+        <section className="space-y-3">
+          <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            Casos especiales
+          </h4>
+          <Button
+            className="h-auto w-full justify-start border border-slate-200 bg-slate-50 px-3 py-2 text-left text-xs font-medium leading-relaxed text-slate-700 shadow-none hover:bg-slate-100"
+            onClick={handleProbarLimiteTercero}
+          >
+            Probar límite de tercero inmobiliario
+          </Button>
+        </section>
+
         <section className="space-y-3">
           <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
             Inyectar contrato

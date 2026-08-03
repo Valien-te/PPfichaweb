@@ -48,6 +48,46 @@ const FIXTURES_GESTIONES_INICIALES = {
   "cesion-derechos-hereditarios": CESION_HEREDITARIA_LISTA_PARA_DOCUMENTOS,
 } as const;
 
+const TERCERO_LIMITE_INMOBILIARIO = {
+  nombres: "Marcela",
+  apellidoPaterno: "Soto",
+  apellidoMaterno: "Rivas",
+  rut: "17.456.321-7",
+  email: "marcela.soto@example.com",
+  fechaNacimiento: "1988-03-12",
+  nacionalidad: "Chilena",
+  profesion: "Contadora auditora",
+  estadoCivil: "Soltero/a",
+  regimenMatrimonial: "",
+  domicilio: "Los Militares 5620, departamento 804",
+  comuna: "Las Condes",
+  region: "Metropolitana",
+  relacion: "amigo",
+  plenamenteCapaz: "",
+  ingresosEstables: "si",
+  disponibilidadFirmaConjunta: "",
+  tipoMandatoFirma: "",
+  cantidadSenalesRiesgo: 0,
+  aceptaRiesgosTransferencia: false,
+} as const;
+
+/** Escenario determinista para revisar visualmente el intento de un tercer uso. */
+export function obtenerFixtureLimiteTerceroInmobiliario() {
+  return {
+    gestionActualId: "compraventa-inmueble",
+    gestionAnteriorId: "cesion-derechos-hereditarios",
+    gestionAdicionalId: "aporte-inmobiliario-srl-limite-demo",
+    datosTercero: { ...TERCERO_LIMITE_INMOBILIARIO },
+    valoresGestionActual: {
+      tipoAdquisicion: "compraventa",
+      tipoTitularidad: "unicoPropietario",
+      direccion: "Av. Providencia 1234, departamento 502",
+      comuna: "Providencia",
+      region: "Metropolitana",
+    },
+  };
+}
+
 export function obtenerFixtureGestionInicial(gestionId: string) {
   const fixture =
     FIXTURES_GESTIONES_INICIALES[gestionId as keyof typeof FIXTURES_GESTIONES_INICIALES];

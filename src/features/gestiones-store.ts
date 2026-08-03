@@ -1,6 +1,9 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-import { obtenerFixtureGestionInicial } from "@/prototype/simulator/gestion-ui-fixtures";
+import {
+  obtenerFixtureGestionInicial,
+  obtenerFixtureLimiteTerceroInmobiliario,
+} from "@/prototype/simulator/gestion-ui-fixtures";
 
 import {
   CONTRATO_CESION_DERECHOS_HEREDITARIOS,
@@ -24,6 +27,7 @@ import {
   DOCUMENTO_COMPROBANTE_TRANSFERENCIA_REGISTRO_CIVIL,
   esTransferenciaVehiculoRegistroCivil,
 } from "./pasos/registro-civil-vehiculo-rules";
+import { evaluarLimiteTerceroInmobiliario } from "./pasos/tercero-inmobiliario-rules";
 import { resolverDocumentosFacultadesMentales } from "./pasos/tercero-risk-rules";
 import {
   CONTRATO_LIQUIDACION_SOCIEDAD_CONYUGAL,
@@ -615,7 +619,23 @@ export function completarTercero(
   datosTercero?: TerceroDatos,
   datosConyugeTercero?: ConyugeTerceroDatos,
   datosOtorganteMandato?: PersonaSociedadDatos | null,
-) {
+): boolean {
+  const gestionActual = gestiones.find((gestion) => gestion.id === gestionId);
+  if (
+    datosTercero &&
+    gestionActual &&
+    evaluarLimiteTerceroInmobiliario(
+      gestiones,
+      gestionId,
+      gestionActual.nombre,
+      datosTercero.rut,
+    ).estado === "limiteAlcanzado"
+  ) {
+    // La UI advierte antes, pero el store repite la validación para que ninguna
+    // llamada alternativa pueda guardar a una persona en una tercera escritura.
+    return false;
+  }
+
   updateGestion(gestionId, (g) => {
     const documentos = datosTercero
       ? resolverDocumentosFacultadesMentales(g.documentos, datosTercero.fechaNacimiento)
@@ -662,6 +682,8 @@ export function completarTercero(
         gestionActualizada?.documentosEstado.map((documento) => ({ ...documento })) ?? [],
     }));
   }
+
+  return true;
 }
 
 export function completarOrientacionRegistroCivilVehiculo(gestionId: string) {
@@ -934,6 +956,84 @@ export function simularEstadoDocumento(
     gestionActualizada.avance = calcularAvance(gestionActualizada);
     return gestionActualizada;
   });
+}
+
+/**
+ * Prepara dos escrituras ya asociadas a la misma persona y una tercera con su
+ * RUT precargado. Solo se usa desde el panel del simulador para revisar la regla.
+ */
+export function simularLimiteTerceroInmobiliario(): string {
+  const fixture = obtenerFixtureLimiteTerceroInmobiliario();
+  const documentosAporte = resolverDocumentosGestion("Aporte inmobiliario SRL");
+
+  gestiones = gestiones.map((gestion) => {
+    if (gestion.id === fixture.gestionAnteriorId) {
+      return {
+        ...gestion,
+        fichaEnviada: true,
+        estado: "en_revision" as EstadoGestion,
+        terceroCompleto: true,
+        datosTercero: { ...fixture.datosTercero },
+        avance: 100,
+      };
+    }
+
+    if (gestion.id === fixture.gestionActualId) {
+      const actualizada: GestionState = {
+        ...gestion,
+        fichaEnviada: false,
+        estado: "pendiente_datos" as EstadoGestion,
+        datosPersonalesConfirmados: true,
+        datosEspecificosCompletos: true,
+        conyugeCompleto: true,
+        terceroCompleto: false,
+        valoresEspecificos: { ...fixture.valoresGestionActual },
+        datosTercero: { ...fixture.datosTercero },
+      };
+      actualizada.avance = calcularAvance(actualizada);
+      return actualizada;
+    }
+
+    return gestion;
+  });
+
+  const gestionAdicional: GestionState = {
+    id: fixture.gestionAdicionalId,
+    nombre: "Aporte inmobiliario SRL",
+    estado: "en_revision",
+    fichaEnviada: true,
+    avance: 100,
+    requiereDatosBien: true,
+    resumen: "Aporte de un inmueble a una sociedad de responsabilidad limitada.",
+    descripcion: "La ficha fue enviada para revisión.",
+    documentos: documentosAporte,
+    camposEspecificos: [],
+    datosPersonalesConfirmados: true,
+    datosEspecificosCompletos: true,
+    conyugeCompleto: true,
+    terceroCompleto: true,
+    documentosEstado: documentosAporte.map((documento) => ({ ...documento })),
+    valoresEspecificos: {
+      direccion: "Los Alerces 450",
+      comuna: "Ñuñoa",
+      region: "Metropolitana",
+    },
+    datosTercero: { ...fixture.datosTercero },
+  };
+
+  const indiceGestionAdicional = gestiones.findIndex(
+    (gestion) => gestion.id === fixture.gestionAdicionalId,
+  );
+  if (indiceGestionAdicional >= 0) {
+    gestiones = gestiones.map((gestion) =>
+      gestion.id === fixture.gestionAdicionalId ? gestionAdicional : gestion,
+    );
+  } else {
+    gestiones = [...gestiones, gestionAdicional];
+  }
+
+  emitChange();
+  return fixture.gestionActualId;
 }
 
 export function agregarGestion(nuevaGestion: Gestion) {

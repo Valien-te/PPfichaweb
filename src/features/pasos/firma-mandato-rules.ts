@@ -1,4 +1,5 @@
 import { obtenerTipoBienVinculado } from "./bienes-vinculados-rules";
+import { correspondenALaMismaPersona } from "./persona-rut-rules";
 
 /**
  * Reglas para crear un mandato cuando las partes no pueden firmar juntas.
@@ -20,23 +21,16 @@ function normalizarRegion(region: string): string {
     .trim();
 }
 
-function normalizarRut(rut: string): string {
-  return rut.replace(/[^0-9kK]/g, "").toUpperCase();
-}
-
 export function obtenerCoincidenciaApoderado(
   rutApoderado: string,
   rutPersonaContratante: string,
   rutOtraParte: string,
 ): CoincidenciaApoderado | undefined {
   // El RUT se compara sin puntos, guion ni diferencias de mayúsculas en el dígito K.
-  const apoderado = normalizarRut(rutApoderado);
-  if (apoderado.length < 2) return undefined;
-
-  if (apoderado === normalizarRut(rutPersonaContratante)) {
+  if (correspondenALaMismaPersona(rutApoderado, rutPersonaContratante)) {
     return "personaContratante";
   }
-  if (apoderado === normalizarRut(rutOtraParte)) {
+  if (correspondenALaMismaPersona(rutApoderado, rutOtraParte)) {
     return "otraParte";
   }
   return undefined;

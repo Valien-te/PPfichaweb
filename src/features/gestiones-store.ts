@@ -23,6 +23,7 @@ import {
   resolverDocumentosGestion,
 } from "./pasos/documentos-rules";
 import { obtenerNombreMandatoFirma, type TipoMandatoFirma } from "./pasos/firma-mandato-rules";
+import { correspondenALaMismaPersona } from "./pasos/persona-rut-rules";
 import {
   DOCUMENTO_COMPROBANTE_TRANSFERENCIA_REGISTRO_CIVIL,
   esTransferenciaVehiculoRegistroCivil,
@@ -623,6 +624,14 @@ export function completarTercero(
   const gestionActual = gestiones.find((gestion) => gestion.id === gestionId);
   if (
     datosTercero &&
+    correspondenALaMismaPersona(datosTercero.rut, getClienteDatos().rut)
+  ) {
+    // El tercero, contraparte o apoderado debe ser otra persona. La validación se
+    // repite en el store para impedir guardados que no provengan del formulario.
+    return false;
+  }
+  if (
+    datosTercero &&
     gestionActual &&
     evaluarLimiteTerceroInmobiliario(
       gestiones,
@@ -718,7 +727,11 @@ export function completarSegundoSocio(
   gestionId: string,
   datosSegundoSocio: SegundoSocioDatos,
   datosAdministradorSociedad?: AdministradorSociedadDatos,
-) {
+): boolean {
+  if (correspondenALaMismaPersona(datosSegundoSocio.rut, getClienteDatos().rut)) {
+    return false;
+  }
+
   updateGestion(gestionId, (g) => {
     const updated = {
       ...g,
@@ -733,6 +746,7 @@ export function completarSegundoSocio(
     }
     return updated;
   });
+  return true;
 }
 
 export function sincronizarMandatoFirma(gestionOrigenId: string, tipoMandato?: TipoMandatoFirma) {

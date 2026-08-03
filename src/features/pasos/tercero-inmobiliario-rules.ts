@@ -1,3 +1,7 @@
+import { normalizarRutParaComparacion } from "./persona-rut-rules";
+
+export { normalizarRutParaComparacion } from "./persona-rut-rules";
+
 /**
  * Límite transversal del tercero de confianza en escrituras inmobiliarias.
  *
@@ -42,11 +46,6 @@ function normalizarTextoRegla(valor: string): string {
     .toLocaleLowerCase("es-CL")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-/** Compara el RUT sin puntos, guion, espacios ni diferencias de mayúsculas. */
-export function normalizarRutParaComparacion(rut: string): string {
-  return rut.replace(/[^0-9kK]/g, "").toUpperCase();
 }
 
 export function esEscrituraInmobiliariaConLimiteTercero(nombreContrato: string): boolean {

@@ -141,6 +141,11 @@ Fuente: [`src/features/pasos/tercero-rules.ts`](src/features/pasos/tercero-rules
 El tercero nunca puede ser el cónyuge ni una persona que, según lo declarado, no pueda
 participar legalmente. Estas condiciones bloquean el avance.
 
+La persona contratante tampoco puede ingresarse a sí misma como tercero de confianza,
+contraparte, segundo socio o apoderado. La plataforma compara ambos RUT normalizados,
+muestra el error en una fila completa bajo el RUT y bloquea el guardado tanto en la UI
+como en el store local.
+
 Son señales revisables, pero no impedimentos automáticos:
 
 - tener menos de 21 años;

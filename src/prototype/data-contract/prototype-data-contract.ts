@@ -929,6 +929,29 @@ export const prototypeDataContract = definePrototypeDataContract({
             note: "El equipo legal y TI deben validar los impedimentos absolutos para la transferencia.",
           },
         },
+        coincideConPersonaContratante: {
+          id: "coincideConPersonaContratante",
+          productDescription:
+            "Indica si el RUT ingresado para la otra persona corresponde a la propia persona contratante.",
+          dataType: "boolean",
+          derivation:
+            "Compara ambos RUT sin puntos, guion, espacios ni diferencias de mayúsculas en el dígito verificador.",
+          required: false,
+          usage: {
+            visible: true,
+            editable: false,
+            calculated: true,
+            technical: false,
+          },
+          usedIn: ["Bloqueo del tercero de confianza", "Validación de otras personas"],
+          origin: "generatedByUsability",
+          source: { kind: "derived" },
+          dataClassification: "sensitive",
+          technicalValidation: {
+            status: "pendingTi",
+            note: "TI debe validar la identidad de ambas personas y repetir esta invariante en backend antes de persistir la ficha.",
+          },
+        },
         cantidadEscriturasInmobiliariasAsignadas: {
           id: "cantidadEscriturasInmobiliariasAsignadas",
           productDescription:

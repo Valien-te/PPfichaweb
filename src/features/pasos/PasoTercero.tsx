@@ -37,6 +37,7 @@ import {
   requierenDefinirFirmaConjunta,
   type TipoMandatoFirma,
 } from "./firma-mandato-rules";
+import { correspondenALaMismaPersona } from "./persona-rut-rules";
 import { evaluarLimiteTerceroInmobiliario } from "./tercero-inmobiliario-rules";
 import {
   calcularEdad,
@@ -410,6 +411,9 @@ export function PasoTercero({
   const coincidenciaApoderado = esMandatoGeneral
     ? obtenerCoincidenciaApoderado(tercero.rut, clienteDatos.rut, rutOtraParteMandato)
     : undefined;
+  // Esta prohibición es transversal: cambiar el formato del RUT no puede hacer
+  // que la persona contratante aparezca como tercero, contraparte o apoderado.
+  const terceroEsCliente = correspondenALaMismaPersona(tercero.rut, clienteDatos.rut);
 
   const [administrador, setAdministrador] = useState(() => ({
     nombres: gestion?.datosAdministradorSociedad?.nombres ?? "",
@@ -600,7 +604,11 @@ export function PasoTercero({
     };
 
     if (esMandatoAutocontrato) {
-      return personaCompleta(tercero) && tieneValor(tercero.sentidoAutocontrato);
+      return (
+        !terceroEsCliente &&
+        personaCompleta(tercero) &&
+        tieneValor(tercero.sentidoAutocontrato)
+      );
     }
 
     if (esMandatoGeneral) {
@@ -662,6 +670,7 @@ export function PasoTercero({
     const tRegimenValido = !tRegimenRequerido || tieneValor(tercero.regimenMatrimonial);
 
     if (!tValido || !tRegimenValido) return false;
+    if (terceroEsCliente) return false;
     if (limiteTerceroInmobiliario.estado === "limiteAlcanzado") return false;
     if (esCesionDerechosHereditarios) {
       // La relación con la herencia siempre debe declararse; una comuna restrictiva
@@ -752,6 +761,11 @@ export function PasoTercero({
       return;
     }
 
+    if (terceroEsCliente) {
+      toast.error("Debes ingresar los datos de una persona distinta de ti.");
+      return;
+    }
+
     if (segundoSocioMenorEdad) {
       toast.warning("El segundo socio debe tener 18 años o más.");
       return;
@@ -783,7 +797,7 @@ export function PasoTercero({
       return;
     }
     if (esSegundoSocio) {
-      completarSegundoSocio(
+      const segundoSocioGuardado = completarSegundoSocio(
         gestionId,
         {
           nombres: tercero.nombres,
@@ -808,6 +822,10 @@ export function PasoTercero({
         },
         requiereDatosAdministrador ? administrador : undefined,
       );
+      if (!segundoSocioGuardado) {
+        toast.error("El segundo socio debe ser una persona distinta de ti.");
+        return;
+      }
     } else {
       const terceroGuardado = completarTercero(
         gestionId,
@@ -1301,33 +1319,42 @@ export function PasoTercero({
                         value={tercero.rut}
                         onChange={(e) => handleTerceroChange("rut", e.target.value)}
                         aria-invalid={Boolean(
-                          coincidenciaApoderado ||
+                          terceroEsCliente ||
+                            coincidenciaApoderado ||
                             limiteTerceroInmobiliario.estado === "limiteAlcanzado",
                         )}
                         aria-describedby={
-                          coincidenciaApoderado
-                            ? "apoderado-rut-coincidencia"
+                          terceroEsCliente || coincidenciaApoderado
+                            ? "tercero-rut-coincidencia-persona"
                             : limiteTerceroInmobiliario.estado !== "disponible"
                               ? "tercero-rut-limite-inmobiliario"
                               : undefined
                         }
                       />
-                      {coincidenciaApoderado && (
-                        <div
-                          id="apoderado-rut-coincidencia"
-                          role="alert"
-                          className="mt-1 flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-relaxed text-red-800"
-                        >
-                          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                          <span>
-                            {coincidenciaApoderado === "personaContratante"
-                              ? "La persona apoderada debe ser distinta de ti. Ingresa el RUT de otra persona."
-                              : "La persona apoderada debe ser distinta de la otra parte del contrato. Ingresa el RUT de otra persona."}
-                          </span>
-                        </div>
-                      )}
                     </div>
-                    {limiteTerceroInmobiliario.estado !== "disponible" && (
+                    {(terceroEsCliente || coincidenciaApoderado === "otraParte") && (
+                      <p
+                        id="tercero-rut-coincidencia-persona"
+                        role="alert"
+                        className="flex items-start gap-2 text-sm leading-relaxed text-red-700 sm:col-span-2"
+                      >
+                        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                        <span>
+                          {terceroEsCliente
+                            ? esMandatoGeneral
+                              ? "La persona apoderada debe ser distinta de ti. Ingresa el RUT de otra persona."
+                              : esSegundoSocio
+                                ? "El segundo socio debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
+                                : esResciliacion()
+                                  ? "La otra parte del contrato debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
+                                  : "El tercero de confianza debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
+                            : "La persona apoderada debe ser distinta de la otra parte del contrato. Ingresa el RUT de otra persona."}
+                        </span>
+                      </p>
+                    )}
+                    {!terceroEsCliente &&
+                      coincidenciaApoderado !== "otraParte" &&
+                      limiteTerceroInmobiliario.estado !== "disponible" && (
                       <p
                         id="tercero-rut-limite-inmobiliario"
                         role={
@@ -1348,7 +1375,7 @@ export function PasoTercero({
                             : "Esta persona ya está asociada a otra escritura inmobiliaria. Puedes elegirla en esta gestión, pero no podrá participar como tercero de confianza en una tercera."}
                         </span>
                       </p>
-                    )}
+                      )}
                     <div className="grid gap-1.5">
                       <Label htmlFor="tercero-fecha">Fecha de nacimiento</Label>
                       <Input

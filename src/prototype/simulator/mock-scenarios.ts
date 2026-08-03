@@ -8,13 +8,14 @@ import { definePrototypeMockScenarios } from "./simulator-contract-schema";
  */
 export const prototypeMockScenarios = definePrototypeMockScenarios({
   scenariosVersion: "1",
-  datasetVersion: 1,
+  datasetVersion: 2,
   defaultScenarioId: "base",
   scenarios: {
     base: {
       id: "base",
       name: "Recorrido principal",
-      description: "Escenario inicial pendiente de completar durante el kickoff.",
+      description:
+        "Recorrido principal con una cesión de derechos hereditarios lista para probar la carga de documentos.",
       entities: {},
     },
     empty: {

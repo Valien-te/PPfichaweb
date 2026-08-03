@@ -1,5 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
+import { obtenerFixtureGestionInicial } from "@/prototype/simulator/gestion-ui-fixtures";
+
 import {
   CONTRATO_CESION_DERECHOS_HEREDITARIOS,
   resolverTipoContratoInmueble,
@@ -130,6 +132,7 @@ export interface GestionState extends Gestion {
 // ---------- store ----------
 
 let gestiones: GestionState[] = gestionesMock.map((g) => {
+  const fixture = obtenerFixtureGestionInicial(g.id);
   const state: GestionState = {
     ...g,
     datosPersonalesConfirmados: g.estado !== "pendiente_datos",
@@ -141,7 +144,10 @@ let gestiones: GestionState[] = gestionesMock.map((g) => {
       estadoRevision:
         g.estado === "en_revision" || g.estado === "completado" ? "aprobado" : undefined,
     })),
-    valoresEspecificos: {},
+    // Una gestión que parte en Documentos debe mostrar antecedentes reales de ejemplo
+    // en los pasos previos; el fixture mantiene esa demostración fuera de la UI.
+    valoresEspecificos: fixture?.valoresEspecificos ?? {},
+    datosTercero: fixture?.datosTercero,
   };
   // Todos los escenarios, incluso los precargados, usan la misma regla de avance.
   state.avance = calcularAvance(state);
@@ -725,21 +731,36 @@ export function sincronizarMandatoFirma(gestionOrigenId: string, tipoMandato?: T
   }
 
   const nombre = obtenerNombreMandatoFirma(tipoMandato);
+  const conservaProgresoAnterior = mandatoAnterior?.nombre === nombre;
   const resumen =
     tipoMandato === "autocontrato"
       ? "Permite que una de las partes firme el contrato principal por sí misma y también en representación de la otra."
       : "Permite que tú o la otra persona otorguen poder a alguien para que firme en su nombre.";
   const documentos = origen.documentos.map((documento) => ({ ...documento }));
   const valoresEspecificos = {
-    ...(mandatoAnterior?.valoresEspecificos ?? {}),
+    ...(conservaProgresoAnterior ? (mandatoAnterior?.valoresEspecificos ?? {}) : {}),
     ...crearValoresMandatoDesdeOrigen(origen.nombre, origen.valoresEspecificos ?? {}),
   };
+  const datosEspecificosCompletos = conservaProgresoAnterior
+    ? (mandatoAnterior?.datosEspecificosCompletos ?? false)
+    : false;
+  const terceroCompleto = conservaProgresoAnterior
+    ? (mandatoAnterior?.terceroCompleto ?? false)
+    : false;
+  const conservaFichaEnviada =
+    conservaProgresoAnterior && datosEspecificosCompletos && terceroCompleto;
+  const estadoMandato =
+    conservaFichaEnviada && mandatoAnterior
+      ? mandatoAnterior.estado
+      : ("pendiente_datos" as EstadoGestion);
   const nuevaGestion: GestionState = {
     ...mandatoAnterior,
     id: mandatoId,
     nombre,
-    estado: mandatoAnterior?.estado ?? "pendiente_datos",
-    fichaEnviada: mandatoAnterior?.fichaEnviada ?? false,
+    // Cambiar la modalidad invalida el avance propio del mandato, pero no sus bienes
+    // ni documentos compartidos con el contrato principal.
+    estado: estadoMandato,
+    fichaEnviada: conservaFichaEnviada ? (mandatoAnterior?.fichaEnviada ?? false) : false,
     avance: mandatoAnterior?.avance ?? 0,
     requiereDatosBien: true,
     resumen,
@@ -747,9 +768,9 @@ export function sincronizarMandatoFirma(gestionOrigenId: string, tipoMandato?: T
     documentos,
     camposEspecificos: [],
     datosPersonalesConfirmados: true,
-    datosEspecificosCompletos: mandatoAnterior?.datosEspecificosCompletos ?? false,
-    conyugeCompleto: mandatoAnterior?.conyugeCompleto ?? false,
-    terceroCompleto: mandatoAnterior?.terceroCompleto ?? false,
+    datosEspecificosCompletos,
+    conyugeCompleto: conservaProgresoAnterior ? (mandatoAnterior?.conyugeCompleto ?? false) : false,
+    terceroCompleto,
     documentosEstado: origen.documentosEstado.map((documento) => ({ ...documento })),
     valoresEspecificos,
     gestionOrigenId,
@@ -758,14 +779,14 @@ export function sincronizarMandatoFirma(gestionOrigenId: string, tipoMandato?: T
       tipoMandato === "autocontrato"
         ? origen.datosTercero
           ? { ...origen.datosTercero }
-          : mandatoAnterior?.nombre === nombre
+          : conservaProgresoAnterior
             ? mandatoAnterior.datosTercero
             : undefined
-        : mandatoAnterior?.nombre === nombre
+        : conservaProgresoAnterior
           ? mandatoAnterior.datosTercero
           : undefined,
     datosOtorganteMandato:
-      tipoMandato === "mandatoGeneral" && mandatoAnterior?.nombre === nombre
+      tipoMandato === "mandatoGeneral" && conservaProgresoAnterior
         ? mandatoAnterior.datosOtorganteMandato
         : undefined,
   };

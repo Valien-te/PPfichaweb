@@ -48,6 +48,8 @@ import {
   esContratoConSegundoSocio,
   esTransferenciaDeInmueble,
   obtenerModoCapturaTercero,
+  obtenerPasoEntradaGestion,
+  obtenerPrimerPasoPendienteGestion,
   obtenerSecuenciaPasosGestion,
   requiereDatosAdministradorSociedad,
 } from "../src/features/pasos/tercero-rules";
@@ -72,6 +74,24 @@ const contratosConConyugeCondicional = [
   "Mandato",
   "Mandato con autocontrato",
 ];
+
+// La tarjeta mock parte en Documentos, por lo que todos los pasos previos deben
+// contener antecedentes sintéticos completos y revisables.
+const cesionHereditariaMock = getGestionState("cesion-derechos-hereditarios");
+assert.equal(cesionHereditariaMock?.fichaEnviada, true);
+assert.equal(cesionHereditariaMock?.datosPersonalesConfirmados, true);
+assert.equal(cesionHereditariaMock?.datosEspecificosCompletos, true);
+assert.equal(cesionHereditariaMock?.terceroCompleto, true);
+assert.deepEqual(cesionHereditariaMock?.valoresEspecificos?.inmueblesHeredados, [
+  {
+    direccion: "Av. Los Leones 1450, departamento 704",
+    comuna: "Providencia",
+    region: "Metropolitana",
+  },
+]);
+assert.equal(cesionHereditariaMock?.valoresEspecificos?.cantidadHerederos, 3);
+assert.equal(cesionHereditariaMock?.datosTercero?.rut, "17.456.321-7");
+assert.equal(cesionHereditariaMock?.datosTercero?.vinculoComunidadHereditaria, "terceroAjeno");
 
 for (const contrato of contratosConConyugeCondicional) {
   assert.equal(obtenerModoCapturaTercero(contrato), "terceroConConyugeCondicional");
@@ -157,6 +177,60 @@ assert.deepEqual(obtenerSecuenciaPasosGestion("Resciliación", false, "Soltero/a
   "tercero",
   "documentos",
 ]);
+const pasosMandato = obtenerSecuenciaPasosGestion("Mandato", true, "Soltero/a", "");
+assert.equal(
+  obtenerPrimerPasoPendienteGestion(pasosMandato, {
+    datosPersonalesConfirmados: true,
+    conyugeCompleto: false,
+    datosEspecificosCompletos: false,
+    terceroCompleto: false,
+  }),
+  "datos-especificos",
+);
+assert.equal(
+  obtenerPrimerPasoPendienteGestion(pasosMandato, {
+    datosPersonalesConfirmados: true,
+    conyugeCompleto: false,
+    datosEspecificosCompletos: true,
+    terceroCompleto: false,
+  }),
+  "tercero",
+);
+assert.equal(
+  obtenerPrimerPasoPendienteGestion(pasosMandato, {
+    datosPersonalesConfirmados: true,
+    conyugeCompleto: false,
+    datosEspecificosCompletos: true,
+    terceroCompleto: true,
+  }),
+  "documentos",
+);
+assert.equal(
+  obtenerPasoEntradaGestion(
+    pasosMandato,
+    {
+      datosPersonalesConfirmados: true,
+      conyugeCompleto: false,
+      datosEspecificosCompletos: true,
+      terceroCompleto: true,
+    },
+    false,
+  ),
+  "tercero",
+);
+assert.equal(
+  obtenerPasoEntradaGestion(
+    pasosMandato,
+    {
+      datosPersonalesConfirmados: true,
+      conyugeCompleto: false,
+      datosEspecificosCompletos: true,
+      terceroCompleto: true,
+    },
+    true,
+  ),
+  "documentos",
+);
 assert.deepEqual(
   obtenerSecuenciaPasosGestion("Renuncia a los gananciales", false, "Divorciado/a", ""),
   ["datos-personales", "conyuge", "documentos"],
@@ -533,6 +607,10 @@ sincronizarMandatoFirma("compraventa-inmueble", "autocontrato");
 const mandatoVinculado = getGestionState("compraventa-inmueble-mandato-firma");
 assert.equal(mandatoVinculado?.gestionOrigenId, "compraventa-inmueble");
 assert.equal(mandatoVinculado?.nombre, "Mandato con autocontrato");
+assert.equal(mandatoVinculado?.estado, "pendiente_datos");
+assert.equal(mandatoVinculado?.fichaEnviada, false);
+assert.equal(mandatoVinculado?.datosEspecificosCompletos, false);
+assert.equal(mandatoVinculado?.terceroCompleto, false);
 assert.equal(mandatoVinculado?.datosTercero?.rut, "15.234.567-8");
 assert.deepEqual(mandatoVinculado?.valoresEspecificos?.mandatoInmueblesDetalle, [
   {
@@ -570,6 +648,10 @@ completarDatosEspecificos("compraventa-inmueble-mandato-firma", {
     },
   ],
 });
+const datosAutocontrato = getGestionState("compraventa-inmueble-mandato-firma")?.datosTercero;
+assert.ok(datosAutocontrato);
+completarTercero("compraventa-inmueble-mandato-firma", datosAutocontrato);
+assert.equal(getGestionState("compraventa-inmueble-mandato-firma")?.estado, "faltan_documentos");
 assert.equal(
   getGestionState("compraventa-inmueble")?.valoresEspecificos?.direccion,
   "Av. Apoquindo 4501",
@@ -590,7 +672,17 @@ assert.equal(
 sincronizarMandatoFirma("compraventa-inmueble", "mandatoGeneral");
 const mandatoGeneralVinculado = getGestionState("compraventa-inmueble-mandato-firma");
 assert.equal(mandatoGeneralVinculado?.nombre, "Mandato");
+assert.equal(mandatoGeneralVinculado?.estado, "pendiente_datos");
+assert.equal(mandatoGeneralVinculado?.fichaEnviada, false);
+assert.equal(mandatoGeneralVinculado?.datosEspecificosCompletos, false);
+assert.equal(mandatoGeneralVinculado?.terceroCompleto, false);
 assert.equal(mandatoGeneralVinculado?.datosTercero, undefined);
+assert.equal(
+  mandatoGeneralVinculado?.documentosEstado.find(
+    (documento) => documento.nombre === documentoCompartido,
+  )?.estadoRevision,
+  "aprobado",
+);
 sincronizarMandatoFirma("compraventa-inmueble", "autocontrato");
 assert.equal(
   getGestionState("compraventa-inmueble-mandato-firma")?.nombre,

@@ -35,6 +35,7 @@ import { esTransferenciaVehiculoRegistroCivil } from "./pasos/registro-civil-veh
 import {
   debeMostrarPasoDocumentos,
   esContratoConSegundoSocio,
+  obtenerPasoEntradaGestion,
   obtenerSecuenciaPasosGestion,
   type PasoGestionId,
 } from "./pasos/tercero-rules";
@@ -100,6 +101,13 @@ export function FlujoGestion() {
 
   // Determinar pasos según la gestión
   const pasos = gestion ? construirPasos(gestion) : [];
+  const primerPasoPendiente = gestion
+    ? obtenerPasoEntradaGestion(
+        pasos.map((paso) => paso.id),
+        gestion,
+        gestion.fichaEnviada,
+      )
+    : undefined;
 
   const pasoActualIdx = pasos.findIndex((p) => p.id === pasoId);
   const pasoActual = pasoActualIdx >= 0 ? pasoActualIdx : 0;
@@ -208,6 +216,16 @@ export function FlujoGestion() {
     return (
       <Navigate to={`/gestion/${gestion.id}/${pasos.at(-1)?.id ?? "datos-personales"}`} replace />
     );
+  }
+
+  const indicePasoSolicitado = pasos.findIndex((paso) => paso.id === pasoId);
+  const indicePrimerPasoPendiente = pasos.findIndex((paso) => paso.id === primerPasoPendiente);
+  if (
+    !gestion.fichaEnviada &&
+    indicePrimerPasoPendiente >= 0 &&
+    indicePasoSolicitado > indicePrimerPasoPendiente
+  ) {
+    return <Navigate to={`/gestion/${gestion.id}/${primerPasoPendiente}`} replace />;
   }
 
   return (

@@ -18,6 +18,13 @@ export type ModoCapturaTercero =
 export type PasoGestionId =
   "datos-personales" | "conyuge" | "datos-especificos" | "tercero" | "documentos";
 
+export interface CompletitudPasosGestion {
+  datosPersonalesConfirmados: boolean;
+  conyugeCompleto: boolean;
+  datosEspecificosCompletos: boolean;
+  terceroCompleto: boolean;
+}
+
 const CONTRATOS_CON_CONYUGE_CONDICIONAL = new Set(
   [
     "Aporte inmobiliario SRL",
@@ -211,4 +218,46 @@ export function obtenerSecuenciaPasosGestion(
   }
 
   return pasos;
+}
+
+/**
+ * Devuelve el primer paso que todavía requiere una acción de la persona.
+ *
+ * La completitud tiene precedencia sobre el estado general. Así, un estado
+ * desactualizado como `faltan_documentos` nunca puede saltarse Datos del bien o Tercero.
+ */
+export function obtenerPrimerPasoPendienteGestion(
+  pasos: readonly PasoGestionId[],
+  completitud: CompletitudPasosGestion,
+): PasoGestionId | undefined {
+  for (const paso of pasos) {
+    if (paso === "datos-personales" && !completitud.datosPersonalesConfirmados) return paso;
+    if (paso === "conyuge" && !completitud.conyugeCompleto) return paso;
+    if (paso === "datos-especificos" && !completitud.datosEspecificosCompletos) return paso;
+    if (paso === "tercero" && !completitud.terceroCompleto) return paso;
+    if (paso === "documentos") return paso;
+  }
+
+  return undefined;
+}
+
+/**
+ * Decide dónde debe entrar una gestión desde el portal o una ruta directa.
+ * Antes del envío, Documentos nunca es una entrada válida: si los datos ya están
+ * completos, se vuelve al último paso de la ficha para ejecutar `Enviar ficha`.
+ */
+export function obtenerPasoEntradaGestion(
+  pasos: readonly PasoGestionId[],
+  completitud: CompletitudPasosGestion,
+  fichaEnviada: boolean,
+): PasoGestionId | undefined {
+  const pasoPendiente = obtenerPrimerPasoPendienteGestion(pasos, completitud);
+  if (fichaEnviada) return pasoPendiente;
+
+  if (pasoPendiente === "documentos") {
+    const indiceDocumentos = pasos.indexOf("documentos");
+    return pasos[indiceDocumentos - 1] ?? pasos[0];
+  }
+
+  return pasoPendiente ?? pasos.at(-1);
 }

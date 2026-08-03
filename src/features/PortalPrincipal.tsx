@@ -16,10 +16,9 @@ import { obtenerIdentificadorGestion } from "./identificador-gestion-rules";
 import type { EstadoGestion } from "./mock-data";
 import { clienteMock, estadosGestion, mensajeProgreso } from "./mock-data";
 import {
-  debeMostrarPasoConyuge,
-  debeMostrarPasoDocumentos,
-  debeMostrarPasoTercero,
   esContratoConSegundoSocio,
+  obtenerPasoEntradaGestion,
+  obtenerSecuenciaPasosGestion,
 } from "./pasos/tercero-rules";
 
 /* ───── Mapeos visuales por estado elegantes y limpios ───── */
@@ -85,22 +84,7 @@ export function PortalPrincipal() {
       return;
     }
 
-    if (estado === "faltan_documentos") {
-      if (debeMostrarPasoDocumentos(gestion.nombre, gestion.documentosEstado.length > 0)) {
-        navigate(`/gestion/${gestionId}/documentos`);
-        return;
-      }
-      enviarGestion(gestionId);
-      navigate("/");
-      return;
-    }
-
     if (esContratoConSegundoSocio(gestion.nombre)) {
-      navigate(`/gestion/${gestionId}/datos-personales`);
-      return;
-    }
-
-    if (!gestion.datosPersonalesConfirmados) {
       navigate(`/gestion/${gestionId}/datos-personales`);
       return;
     }
@@ -110,25 +94,22 @@ export function PortalPrincipal() {
     const regimen =
       localStorage.getItem("lexy_regimenMatrimonial") || gestion.clienteRegimenMatrimonial || "";
 
-    if (debeMostrarPasoConyuge(gestion.nombre, estadoCivil, regimen) && !gestion.conyugeCompleto) {
-      navigate(`/gestion/${gestionId}/conyuge`);
-      return;
-    }
-    if (gestion.requiereDatosBien && !gestion.datosEspecificosCompletos) {
-      navigate(`/gestion/${gestionId}/datos-especificos`);
-      return;
-    }
     const tipoSociedad =
       typeof gestion.valoresEspecificos?.tipoSociedad === "string"
         ? gestion.valoresEspecificos.tipoSociedad
         : "";
-    if (debeMostrarPasoTercero(gestion.nombre, tipoSociedad) && !gestion.terceroCompleto) {
-      navigate(`/gestion/${gestionId}/tercero`);
-      return;
-    }
+    const pasos = obtenerSecuenciaPasosGestion(
+      gestion.nombre,
+      gestion.requiereDatosBien,
+      estadoCivil,
+      regimen,
+      tipoSociedad,
+      gestion.documentosEstado.length > 0,
+    );
+    const pasoPendiente = obtenerPasoEntradaGestion(pasos, gestion, gestion.fichaEnviada);
 
-    if (debeMostrarPasoDocumentos(gestion.nombre, gestion.documentosEstado.length > 0)) {
-      navigate(`/gestion/${gestionId}/documentos`);
+    if (pasoPendiente) {
+      navigate(`/gestion/${gestionId}/${pasoPendiente}`);
       return;
     }
     enviarGestion(gestionId);

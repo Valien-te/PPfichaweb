@@ -1183,6 +1183,43 @@ export const prototypeDataContract = definePrototypeDataContract({
         ),
       },
     },
+    inmuebleHeredado: {
+      id: "inmuebleHeredado",
+      productDescription: "Inmueble incluido en una cesión de derechos hereditarios.",
+      roleInExperience:
+        "Permite identificar cada inmueble de la herencia, aplicar la regla del Conservador por comuna y solicitar documentos por bien.",
+      usedIn: [
+        "Datos del bien de Cesión de derechos hereditarios",
+        "Regla del tercero por comuna",
+        "Documentos por inmueble heredado",
+      ],
+      origin: "generatedByUsability",
+      source: { kind: "unknown" },
+      dataClassification: "internal",
+      technicalValidation: {
+        status: "pendingTi",
+        note: "TI y Operaciones deben validar la estructura y persistencia definitiva de los inmuebles incluidos en una herencia.",
+      },
+      fields: {
+        direccion: crearCampoFormulario("direccion", "Dirección del inmueble heredado.", "string", [
+          "Datos del bien",
+          "Identificador del inmueble",
+          "Documentos por bien",
+        ]),
+        comuna: crearCampoFormulario(
+          "comuna",
+          "Comuna del inmueble heredado que determina la regla del Conservador.",
+          "string",
+          ["Datos del bien", "Regla del tercero por comuna"],
+        ),
+        region: crearCampoFormulario(
+          "region",
+          "Región administrativa del inmueble heredado.",
+          "string",
+          ["Datos del bien"],
+        ),
+      },
+    },
     inmuebleMandato: {
       id: "inmuebleMandato",
       productDescription: "Inmueble que el cliente incluirá en un mandato.",
@@ -1741,6 +1778,27 @@ export const prototypeDataContract = definePrototypeDataContract({
             note: "TI debe confirmar el catálogo de tipos de adquisición y la regla que transforma el contrato cuando el inmueble proviene de una herencia.",
           },
         },
+        cantidadHerederos: {
+          id: "cantidadHerederos",
+          productDescription:
+            "Cantidad total de personas herederas informada para la cesión de derechos hereditarios.",
+          dataType: "number",
+          required: false,
+          usage: {
+            visible: true,
+            editable: true,
+            calculated: false,
+            technical: false,
+          },
+          usedIn: ["Datos del bien de Cesión de derechos hereditarios"],
+          origin: "generatedByUsability",
+          source: { kind: "unknown" },
+          dataClassification: "internal",
+          technicalValidation: {
+            status: "pendingTi",
+            note: "TI y Operaciones deben confirmar la fuente, validación y persistencia de la cantidad de personas herederas.",
+          },
+        },
         tipoTitularidadInmueble: {
           id: "tipoTitularidadInmueble",
           productDescription:
@@ -2209,6 +2267,27 @@ export const prototypeDataContract = definePrototypeDataContract({
       technicalValidation: {
         status: "pendingTi",
         note: "TI debe validar la reutilización del tercero del contrato principal y la persistencia del otorgante.",
+      },
+    },
+    {
+      id: "gestionInmueblesHeredados",
+      fromEntity: "gestion",
+      toEntity: "inmuebleHeredado",
+      cardinality: "oneToMany",
+      productDescription:
+        "Vincula una cesión de derechos hereditarios con cada inmueble declarado en la herencia.",
+      requiredBy: [
+        "Datos del bien de Cesión de derechos hereditarios",
+        "Regla del tercero por comuna",
+        "Documentos por inmueble heredado",
+      ],
+      resolution: "embedded",
+      origin: "generatedByUsability",
+      source: { kind: "unknown" },
+      dataClassification: "internal",
+      technicalValidation: {
+        status: "pendingTi",
+        note: "TI debe definir la relación persistente entre la gestión y sus inmuebles heredados.",
       },
     },
     {

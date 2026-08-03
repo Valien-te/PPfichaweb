@@ -180,6 +180,10 @@ Fuente: [`src/features/pasos/cesion-hereditaria-tercero-rules.ts`](src/features/
   y de la otra parte.
 - Contrato principal y mandato comparten bienes, documentos, archivos y estados en ambos
   sentidos. No deben producirse cargas documentales duplicadas.
+- El mandato conserva su propio avance: siempre debe completar Datos del bien y sus datos
+  de representación antes de acceder a Documentos, aunque los archivos ya estén compartidos.
+- Cambiar entre mandato general y mandato con autocontrato reinicia los pasos propios del
+  mandato, pero mantiene sincronizados los bienes y documentos del contrato principal.
 
 Fuentes: [`firma-mandato-rules.ts`](src/features/pasos/firma-mandato-rules.ts) y
 [`bienes-vinculados-rules.ts`](src/features/pasos/bienes-vinculados-rules.ts).
@@ -291,6 +295,10 @@ El panel de simulación permite:
 - abrir directamente su etapa de documentos;
 - forzar por documento los estados sin cargar, pendiente, aprobado y rechazado;
 - generar un archivo sintético y un motivo de rechazo determinista.
+
+El escenario principal incluye una Cesión de derechos hereditarios con la ficha ya
+enviada: muestra una propiedad heredada en Providencia y una tercera persona sintética
+completa, para que la etapa “Faltan documentos” pueda revisarse con contexto realista.
 
 Los datos del simulador son ficticios, reproducibles y no deben copiarse directamente
 en componentes de pantalla.

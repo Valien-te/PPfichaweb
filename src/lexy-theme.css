@@ -1,0 +1,232 @@
+/**
+ * Tema Lexy — fuente única de verdad.
+ * Lo consumen tanto Storybook (src/styles/storybook.css) como el proyecto
+ * generado (escrito por src/services/installAddons.ts). No editar copias:
+ * cualquier cambio de tokens va aquí.
+ *
+ * Convención shadcn/Tailwind: tokens semánticos (no escalas numéricas).
+ * Para colores crudos puntuales se usa la paleta por defecto de Tailwind
+ * (bg-blue-500, text-zinc-600, …). Fondos sutiles de estado vía opacidad
+ * (bg-success/10, border-warning/20, …).
+ */
+
+/*
+ * Noto Sans (variable, SIL OFL) — tipografía principal de Lexy, auto-hospedada
+ * para garantizar un render idéntico en todos los sistemas (Windows, Linux,
+ * macOS). Es muy cercana a Segoe UI, aunque algo más geométrica y con mayor
+ * avance horizontal; se ajusta con size-adjust y un tracking sutil (ver
+ * @layer base) para igualar densidad y tamaño aparente. Un solo woff2 variable
+ * cubre los pesos 400–700. Licencia en /fonts/OFL-NotoSans.txt.
+ */
+@font-face {
+  font-family: "Noto Sans";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  size-adjust: 96%;
+  src: url("/fonts/noto-sans-latin.woff2") format("woff2");
+}
+
+@theme {
+  /* ── Color ──
+     Valores cromáticos alineados con LexyDesign (src/app/tokens.css), la fuente
+     de verdad de la marca, que sigue Fluent 2. Se conserva la NOMENCLATURA
+     shadcn/Tailwind (tokens semánticos consumidos como bg-primary,
+     text-muted-foreground, …): solo cambian los hex, no los nombres. El token
+     Fluent de origen se anota a la derecha de cada valor. */
+
+  /* ── Superficies y texto ── */
+  --color-background: #ffffff; /* Fluent NeutralBackground1 */
+  --color-foreground: #242424; /* Fluent NeutralForeground1 */
+  --color-card: #fafafa; /* Fluent NeutralCardBackground */
+  --color-card-foreground: #242424;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #242424;
+
+  /* ── Acción ── */
+  --color-primary: #4648d4; /* índigo de marca · Fluent BrandBackground */
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #4b41e1; /* Fluent BrandBackgroundHover */
+  --color-primary-active: #313396; /* Fluent BrandBackgroundPressed */
+  --color-secondary: #f5f5f5; /* Fluent NeutralBackground3 */
+  --color-secondary-foreground: #424242; /* Fluent NeutralForeground2 */
+  --color-accent: #ebf3fc; /* tinte de marca · Fluent BrandBackground2 */
+  --color-accent-foreground: #4648d4; /* Fluent BrandForeground1 */
+  --color-muted: #f5f5f5; /* Fluent NeutralBackground3 */
+  --color-muted-foreground: #616161; /* Fluent NeutralForeground3 */
+
+  /* ── Marca ── */
+  --color-brand-navy: #0b013c; /* navy/ink del wordmark Lexy (HeaderBar surface navy) */
+
+  /* ── Bordes y foco ── */
+  --color-border: #d1d1d1; /* Fluent NeutralStroke1 */
+  --color-input: #d1d1d1;
+  --color-ring: #4648d4; /* Fluent BrandStroke1 */
+
+  /* ── Radius — contrato de geometría: `rounded` en controles,
+        `rounded-md`/`lg` en superficies. Todo deriva de la perilla --radius;
+        los valores preservan los defaults de Tailwind (4/6/8px). ── */
+  --radius: 0.25rem; /* 4px · controles */
+  --radius-sm: var(--radius);
+  --radius-md: calc(var(--radius) + 0.125rem); /* 6px · superficies */
+  --radius-lg: calc(var(--radius) + 0.25rem); /* 8px · superficies grandes */
+
+  /* ── Sidebar shadcn ── */
+  --color-sidebar: #ffffff;
+  --color-sidebar-foreground: #242424;
+  --color-sidebar-primary: #4648d4;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #ededfb;
+  --color-sidebar-accent-foreground: #4648d4;
+  --color-sidebar-border: #d1d1d1;
+  --color-sidebar-ring: #4648d4;
+
+  /* ── Series de datos (charts) ──
+        Paleta categórica anclada en el índigo de marca, pensada para que series
+        contiguas se distingan sin competir. Se consumen vía la prop `color` del
+        ChartConfig (color: "var(--color-chart-1)") o como bg-chart-1 en Tailwind. */
+  --color-chart-1: #4648d4; /* índigo de marca */
+  --color-chart-2: #0f6cbd; /* azul de comunicación */
+  --color-chart-3: #1aab8a; /* teal */
+  --color-chart-4: #f7630c; /* naranja */
+  --color-chart-5: #b14ad1; /* magenta */
+
+  /* ── Estados semánticos (paleta Fluent 2) ── */
+  --color-destructive: #d13438; /* Fluent PaletteRedBackground3 */
+  --color-destructive-foreground: #ffffff;
+  --color-success: #107c10; /* Fluent PaletteGreenBackground3 */
+  --color-success-foreground: #ffffff;
+  --color-warning: #f7630c; /* Fluent StatusWarningBackground3 */
+  --color-warning-foreground: #ffffff;
+  --color-info: #0f6cbd; /* azul de comunicación Fluent 2 */
+  --color-info-foreground: #ffffff;
+
+  /* ── Tipografía — rampa oficial de Fluent 2 (Microsoft), nomenclatura
+        Tailwind. Cada tamaño viene pareado con su line-height (px de
+        referencia). Los tamaños de cuerpo (xs–lg) usan tracking nativo
+        (normal); a partir de los titulares (xl–5xl) se aplica un tracking
+        negativo progresivo para cerrar el espaciado óptico, igual que la
+        rampa de Display/Title de Fluent. ── */
+  --text-xs: 0.75rem; /* 12 / 16 · Caption */
+  --text-xs--line-height: 1rem;
+  --text-xs--letter-spacing: normal;
+  --text-sm: 0.875rem; /* 14 / 20 · Body */
+  --text-sm--line-height: 1.25rem;
+  --text-sm--letter-spacing: normal;
+  --text-base: 1rem; /* 16 / 22 · Body large */
+  --text-base--line-height: 1.375rem;
+  --text-base--letter-spacing: normal;
+  --text-lg: 1.25rem; /* 20 / 26 · Subtitle */
+  --text-lg--line-height: 1.625rem;
+  --text-lg--letter-spacing: normal;
+  --text-xl: 1.5rem; /* 24 / 32 · Title 3 */
+  --text-xl--line-height: 2rem;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.75rem; /* 28 / 36 · Title 2 */
+  --text-2xl--line-height: 2.25rem;
+  --text-2xl--letter-spacing: -0.014em;
+  --text-3xl: 2rem; /* 32 / 40 · Title 1 */
+  --text-3xl--line-height: 2.5rem;
+  --text-3xl--letter-spacing: -0.018em;
+  --text-4xl: 2.5rem; /* 40 / 52 · Large title */
+  --text-4xl--line-height: 3.25rem;
+  --text-4xl--letter-spacing: -0.022em;
+  --text-5xl: 4.25rem; /* 68 / 92 · Display */
+  --text-5xl--line-height: 5.75rem;
+  --text-5xl--letter-spacing: -0.028em;
+
+  /* ── Pesos — estándar de Fluent/Segoe UI. ── */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ── Fuente ──
+     Noto Sans (auto-hospedada, OFL) es la única fuente de marca; se carga vía
+     @font-face, así el render es idéntico en todos los sistemas. Los genéricos
+     finales solo actúan si el woff2 no llegara a cargar. */
+  --font-sans: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont,
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ── Animaciones (Accordion de Radix) ── */
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  /* ── Spacing semántico de layout ──
+     Mismos valores que LexyDesign (Fluent 2 / tailwind.config.ts), con naming
+     Tailwind. Se consumen como gap-gutter, p-section-gap, max-w-container, etc.
+     La unidad base sigue siendo la escala numérica de Tailwind (múltiplos de
+     4px); estos tokens añaden vocabulario intencional para layouts. */
+  --spacing-stack-sm:    0.5rem;   /*  8px · separación entre items pequeños */
+  --spacing-stack-md:    1rem;     /* 16px · separación entre grupos */
+  --spacing-stack-lg:    2rem;     /* 32px · separación entre secciones */
+  --spacing-gutter:      1.5rem;   /* 24px · margen interior de columna */
+  --spacing-section-gap: 2.5rem;   /* 40px · separación entre bloques de página */
+  --spacing-page-bottom: 8rem;     /* 128px · padding inferior de página */
+
+  /* ── Márgenes de contenedor ── */
+  --spacing-margin-mobile:  1rem;  /* 16px · margen lateral en móvil */
+  --spacing-margin-desktop: 3rem;  /* 48px · margen lateral en desktop */
+  --spacing-container-max:  80rem; /* 1280px · ancho máximo de contenedor */
+}
+
+@layer utilities {
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* Fuente global del sistema de diseño. La carga (@import de la fuente) vive en
+   el entrypoint CSS porque debe ir antes de @import "tailwindcss". */
+@layer base {
+  :root {
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 14%;
+    --sidebar-primary: 239 62% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 239 63% 96%;
+    --sidebar-accent-foreground: 239 62% 55%;
+    --sidebar-border: 0 0% 82%;
+    --sidebar-ring: 239 62% 55%;
+  }
+
+  /*
+   * Chrome, Edge y Safari aplican una superficie azul propia al autocompletar.
+   * La reemplazamos por el mismo gris tenue de un Input con contenido para que
+   * el origen del dato no cambie la jerarquía visual del formulario.
+   */
+  [data-slot="input"]:-webkit-autofill,
+  [data-slot="input"]:-webkit-autofill:hover,
+  [data-slot="input"]:-webkit-autofill:active {
+    -webkit-text-fill-color: var(--color-foreground);
+    caret-color: var(--color-foreground);
+    -webkit-box-shadow: inset 0 0 0 1000px
+      color-mix(in srgb, var(--color-muted) 50%, var(--color-background));
+    box-shadow: inset 0 0 0 1000px
+      color-mix(in srgb, var(--color-muted) 50%, var(--color-background));
+  }
+
+  [data-slot="input"]:-webkit-autofill:focus {
+    -webkit-box-shadow: inset 0 0 0 1000px var(--color-background);
+    box-shadow: inset 0 0 0 1000px var(--color-background);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-normal);
+    /* Noto Sans tiene mayor avance horizontal; un tracking negativo sutil
+       compacta su densidad y la acerca al ritmo de Segoe UI. */
+    letter-spacing: -0.007em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

@@ -1,0 +1,33 @@
+import { definePrototypeMockScenarios } from "./simulator-contract-schema";
+
+/**
+ * Escenarios mock persistibles.
+ *
+ * Un proyecto fresco nace vacío y válido. El agente agrega fixtures explícitos
+ * después del kickoff y sube datasetVersion cuando cambia el dataset.
+ */
+export const prototypeMockScenarios = definePrototypeMockScenarios({
+  scenariosVersion: "1",
+  datasetVersion: 1,
+  defaultScenarioId: "base",
+  scenarios: {
+    base: {
+      id: "base",
+      name: "Recorrido principal",
+      description: "Escenario inicial pendiente de completar durante el kickoff.",
+      entities: {},
+    },
+    empty: {
+      id: "empty",
+      name: "Estado vacío",
+      description: "Escenario sin resultados.",
+      entities: {},
+    },
+    edgeCases: {
+      id: "edgeCases",
+      name: "Casos límite",
+      description: "Escenario pendiente de completar según la experiencia.",
+      entities: {},
+    },
+  },
+});

@@ -1,0 +1,54 @@
+{
+  "version": "2.0.0",
+  "generatedAt": "2026-07-07T15:58:22.992Z",
+  "architecture": "feature",
+  "world": "cliente",
+  "registry": {
+    "package": "@lexydesign/registry",
+    "cdn": "https://cdn.jsdelivr.net/npm/@lexydesign/registry"
+  },
+  "componentImportPattern": "@/shared/components/base/{Component}",
+  "paths": {
+    "components": "src/shared/components/base",
+    "hooks": "src/shared/hooks",
+    "services": "src/shared/services",
+    "lib": "src/shared/lib",
+    "views": "src/features"
+  },
+  "prototype": {
+    "dataContractVersion": "1",
+    "dataContractPath": "src/prototype/data-contract/prototype-data-contract.ts",
+    "eventEngineVersion": "1",
+    "eventEngineContractPath": "src/prototype/event-engine/prototype-event-engine-contract.ts",
+    "eventEnginePath": "src/prototype/event-engine/event-engine.ts",
+    "simulatorVersion": "1",
+    "simulatorProfilePath": "src/prototype/simulator/mock-generation-profile.ts",
+    "simulatorScenariosPath": "src/prototype/simulator/mock-scenarios.ts",
+    "simulatorPath": "src/prototype/simulator/prototype-simulator.ts",
+    "defaultScenarioId": "base"
+  },
+  "installed": {
+    "app-header-bar": "0.1.16",
+    "button": "0.1.16",
+    "header-bar": "0.1.16",
+    "logo": "0.1.16",
+    "card": "0.1.16",
+    "badge": "0.1.16",
+    "status-dot": "0.1.16",
+    "progress": "0.1.16",
+    "toaster": "0.1.16",
+    "form": "0.1.16",
+    "label": "0.1.16",
+    "input": "0.1.16",
+    "select": "0.1.16",
+    "checkbox": "0.1.16",
+    "textarea": "0.1.16",
+    "radio-group": "0.1.31",
+    "tooltip": "0.1.32",
+    "popover": "0.1.32",
+    "table": "0.1.33",
+    "breadcrumb": "0.1.35",
+    "dialog": "0.1.35",
+    "app-dialog": "0.1.35"
+  }
+}

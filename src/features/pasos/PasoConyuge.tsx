@@ -13,6 +13,7 @@ import {
   useGestion,
 } from "../gestiones-store";
 import { obtenerModoCapturaTercero } from "./tercero-rules";
+import { useValidacionCampos } from "./use-validacion-campos";
 
 interface PasoConyugeProps {
   esUltimoPasoFicha?: boolean;
@@ -95,6 +96,7 @@ export function PasoConyuge({
     region: gestion?.datosConyuge?.region || "",
   }));
   const [confirmado, setConfirmado] = useState(false);
+  const { contenedorRef, mensajesValidacion, validarCampos } = useValidacionCampos();
 
   function handleChange(campo: keyof ConyugeDatos, valor: string) {
     setDatos((prev) => {
@@ -130,7 +132,7 @@ export function PasoConyuge({
     }
 
     if (!formularioValido) {
-      toast.warning("Completa todos los campos y confirma que los datos están correctos.");
+      validarCampos();
       return;
     }
 
@@ -140,7 +142,7 @@ export function PasoConyuge({
   }
 
   return (
-    <div className="space-y-6">
+    <div ref={contenedorRef} className="space-y-6">
       <datalist id="comunas-conyuge">
         {COMUNAS.map((comuna) => (
           <option key={comuna} value={comuna} />
@@ -161,7 +163,7 @@ export function PasoConyuge({
           disabled={soloLectura}
           className="contents [&_input:disabled]:opacity-100 [&_select:disabled]:opacity-100 [&_textarea:disabled]:opacity-100 [&_[role=combobox]:disabled]:opacity-100"
         >
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
             <div className="grid gap-1.5">
               <Label htmlFor="conyuge-nombres">Nombres</Label>
               <Input
@@ -276,10 +278,14 @@ export function PasoConyuge({
             </div>
           </div>
 
-          <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <div
+            data-validation-field
+            className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4"
+          >
             <div className="flex items-start gap-3">
               <Checkbox
                 id="confirmar-datos-conyuge"
+                data-validation-required="true"
                 checked={confirmado}
                 onCheckedChange={(checked) => setConfirmado(checked === true)}
                 className="mt-1"
@@ -295,20 +301,15 @@ export function PasoConyuge({
         </fieldset>
       </section>
 
+      {mensajesValidacion}
+
       <div className="flex justify-between gap-4">
         <Button variant="outline" onClick={onVolver} className="w-full sm:w-auto">
           Volver
         </Button>
-        <Button
-          onClick={handleGuardar}
-          disabled={!soloLectura && !formularioValido}
-          className="w-full sm:w-auto"
-        >
-          {soloLectura
-            ? "Continuar"
-            : esUltimoPasoFicha
-              ? "Enviar ficha"
-              : "Guardar y continuar"}
+        {/* La acción permanece habilitada: al presionarla, el hook destaca cada faltante. */}
+        <Button onClick={handleGuardar} className="w-full sm:w-auto">
+          {soloLectura ? "Continuar" : esUltimoPasoFicha ? "Enviar ficha" : "Guardar y continuar"}
         </Button>
       </div>
     </div>

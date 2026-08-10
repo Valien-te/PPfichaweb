@@ -73,6 +73,18 @@ Cada cambio de etapa lleva la pantalla al inicio. Antes de enviar, la persona pu
 a etapas anteriores. Al presionar **Enviar ficha**, todos los campos quedan bloqueados y
 la ficha completa permanece navegable en modo de solo lectura.
 
+### Validación de campos y acciones
+
+Los botones de avance permanecen habilitados aunque falten campos rellenables. La
+validación ocurre cuando la persona intenta continuar: cada campo incompleto se destaca,
+muestra su mensaje inmediatamente debajo y el foco se dirige al primero. Los mensajes se
+actualizan de manera independiente al corregir cada respuesta y las grillas mantienen
+alineados los campos vecinos. La confirmación de Datos personales se destaca sin repetir
+un mensaje bajo una declaración que ya explica la acción.
+
+Este patrón solo cubre completitud. Los impedimentos legales o técnicos conservan sus
+mensajes y bloqueos específicos.
+
 Si corresponde cargar documentos, la confirmación conduce a esa etapa. Si no corresponde,
 la gestión vuelve al portal para su revisión.
 
@@ -138,8 +150,10 @@ Fuente: [`src/features/pasos/tercero-rules.ts`](src/features/pasos/tercero-rules
 
 ### Tercero de confianza y señales de riesgo
 
-El tercero nunca puede ser el cónyuge ni una persona que, según lo declarado, no pueda
-participar legalmente. Estas condiciones bloquean el avance.
+El tercero nunca puede ser el cónyuge, ser menor de 18 años ni ser una persona que, según
+lo declarado, no pueda participar legalmente. Estas condiciones bloquean el avance tanto
+en el formulario como en el store local; el consentimiento de riesgo no permite
+ignorarlas.
 
 La persona contratante tampoco puede ingresarse a sí misma como tercero de confianza,
 contraparte, segundo socio o apoderado. La plataforma compara ambos RUT normalizados,
@@ -148,7 +162,7 @@ como en el store local.
 
 Son señales revisables, pero no impedimentos automáticos:
 
-- tener menos de 21 años;
+- tener entre 18 y 20 años;
 - ser hijo/a, padre, madre o hermano/a;
 - no contar con ingresos estables.
 

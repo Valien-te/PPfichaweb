@@ -50,6 +50,7 @@ import {
   obtenerModoCapturaTercero,
   requiereDatosAdministradorSociedad,
 } from "./tercero-rules";
+import { useValidacionCampos } from "./use-validacion-campos";
 
 interface PasoTerceroProps {
   esUltimoPasoFicha?: boolean;
@@ -174,7 +175,7 @@ function CamposPersonaMandato({ idPrefix, persona, onChange }: CamposPersonaMand
   ] as const;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
       {camposTexto.map((campo) => (
         <div key={campo.key} className="grid gap-1.5">
           <Label htmlFor={`${idPrefix}-${campo.key}`}>{campo.label}</Label>
@@ -278,6 +279,7 @@ export function PasoTercero({
   onVolver,
   onSiguiente,
 }: PasoTerceroProps) {
+  const { contenedorRef, mensajesValidacion, validarCampos } = useValidacionCampos();
   const gestion = useGestion(gestionId);
   const gestiones = useGestiones();
   const gestionOrigen = useGestion(gestion?.gestionOrigenId ?? "__sin-gestion-origen__");
@@ -470,7 +472,11 @@ export function PasoTercero({
     tercero.rut,
   );
 
-  const edadSegundoSocio = esSegundoSocio ? calcularEdad(tercero.fechaNacimiento) : null;
+  // Decisión de negocio: cualquier persona ingresada como tercero debe ser adulta;
+  // para el segundo socio se conserva un copy específico, pero la regla es la misma.
+  const edadTercero = calcularEdad(tercero.fechaNacimiento);
+  const terceroMenorEdad = edadTercero !== null && edadTercero < 18;
+  const edadSegundoSocio = esSegundoSocio ? edadTercero : null;
   const segundoSocioMenorEdad = edadSegundoSocio !== null && edadSegundoSocio < 18;
   const edadAdministrador = requiereDatosAdministrador
     ? calcularEdad(administrador.fechaNacimiento)
@@ -605,9 +611,7 @@ export function PasoTercero({
 
     if (esMandatoAutocontrato) {
       return (
-        !terceroEsCliente &&
-        personaCompleta(tercero) &&
-        tieneValor(tercero.sentidoAutocontrato)
+        !terceroEsCliente && personaCompleta(tercero) && tieneValor(tercero.sentidoAutocontrato)
       );
     }
 
@@ -671,6 +675,7 @@ export function PasoTercero({
 
     if (!tValido || !tRegimenValido) return false;
     if (terceroEsCliente) return false;
+    if (terceroMenorEdad) return false;
     if (limiteTerceroInmobiliario.estado === "limiteAlcanzado") return false;
     if (esCesionDerechosHereditarios) {
       // La relación con la herencia siempre debe declararse; una comuna restrictiva
@@ -766,8 +771,12 @@ export function PasoTercero({
       return;
     }
 
-    if (segundoSocioMenorEdad) {
-      toast.warning("El segundo socio debe tener 18 años o más.");
+    if (terceroMenorEdad) {
+      toast.warning(
+        esSegundoSocio
+          ? "El segundo socio debe tener 18 años o más."
+          : "Esta persona debe tener 18 años o más.",
+      );
       return;
     }
     if (administradorMenorEdad) {
@@ -793,6 +802,7 @@ export function PasoTercero({
       return;
     }
     if (!isFormValido()) {
+      if (!validarCampos()) return;
       toast.warning("Por favor, completa todos los campos obligatorios antes de continuar.");
       return;
     }
@@ -877,7 +887,7 @@ export function PasoTercero({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="space-y-6">
+      <div ref={contenedorRef} className="space-y-6">
         {/* Datalist global para autocompletar comunas */}
         <datalist id="comunas-chile">
           {COMUNAS.map((c) => (
@@ -900,7 +910,7 @@ export function PasoTercero({
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="conyuge-nombres">Nombres</Label>
                   <Input
@@ -1075,9 +1085,10 @@ export function PasoTercero({
                     </p>
 
                     {reglaTerceroCesionHereditaria.regla === "soloComunero" ? (
-                      <div className="mt-4 flex items-start gap-3">
+                      <div data-validation-field className="mt-4 flex flex-wrap items-start gap-3">
                         <Checkbox
                           id="confirmar-tercero-heredero"
+                          data-validation-required="true"
                           checked={tercero.vinculoComunidadHereditaria === "comunero"}
                           onCheckedChange={(checked) =>
                             handleTerceroChange(
@@ -1283,7 +1294,7 @@ export function PasoTercero({
                 )}
 
                 {(!esMandatoAutocontrato || !autocontratoPrecargado) && (
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                     <div className="grid gap-1.5">
                       <Label htmlFor="tercero-nombres">Nombres</Label>
                       <Input
@@ -1315,13 +1326,14 @@ export function PasoTercero({
                       <Label htmlFor="tercero-rut">RUT</Label>
                       <Input
                         id="tercero-rut"
+                        data-validation-preserve-aria-invalid="true"
                         placeholder="Ej: 11.222.333-4"
                         value={tercero.rut}
                         onChange={(e) => handleTerceroChange("rut", e.target.value)}
                         aria-invalid={Boolean(
                           terceroEsCliente ||
-                            coincidenciaApoderado ||
-                            limiteTerceroInmobiliario.estado === "limiteAlcanzado",
+                          coincidenciaApoderado ||
+                          limiteTerceroInmobiliario.estado === "limiteAlcanzado",
                         )}
                         aria-describedby={
                           terceroEsCliente || coincidenciaApoderado
@@ -1355,46 +1367,51 @@ export function PasoTercero({
                     {!terceroEsCliente &&
                       coincidenciaApoderado !== "otraParte" &&
                       limiteTerceroInmobiliario.estado !== "disponible" && (
-                      <p
-                        id="tercero-rut-limite-inmobiliario"
-                        role={
-                          limiteTerceroInmobiliario.estado === "limiteAlcanzado"
-                            ? "alert"
-                            : "status"
-                        }
-                        className={`flex items-start gap-2 text-sm leading-relaxed sm:col-span-2 ${
-                          limiteTerceroInmobiliario.estado === "limiteAlcanzado"
-                            ? "text-red-700"
-                            : "text-primary"
-                        }`}
-                      >
-                        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                        <span>
-                          {limiteTerceroInmobiliario.estado === "limiteAlcanzado"
-                            ? "Esta persona ya fue elegida como tercero de confianza en dos escrituras inmobiliarias. Para continuar, debes elegir a otra persona."
-                            : "Esta persona ya está asociada a otra escritura inmobiliaria. Puedes elegirla en esta gestión, pero no podrá participar como tercero de confianza en una tercera."}
-                        </span>
-                      </p>
+                        <p
+                          id="tercero-rut-limite-inmobiliario"
+                          role={
+                            limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                              ? "alert"
+                              : "status"
+                          }
+                          className={`flex items-start gap-2 text-sm leading-relaxed sm:col-span-2 ${
+                            limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                              ? "text-red-700"
+                              : "text-primary"
+                          }`}
+                        >
+                          <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                          <span>
+                            {limiteTerceroInmobiliario.estado === "limiteAlcanzado"
+                              ? "Esta persona ya fue elegida como tercero de confianza en dos escrituras inmobiliarias. Para continuar, debes elegir a otra persona."
+                              : "Esta persona ya está asociada a otra escritura inmobiliaria. Puedes elegirla en esta gestión, pero no podrá participar como tercero de confianza en una tercera."}
+                          </span>
+                        </p>
                       )}
                     <div className="grid gap-1.5">
                       <Label htmlFor="tercero-fecha">Fecha de nacimiento</Label>
                       <Input
                         id="tercero-fecha"
+                        data-validation-preserve-aria-invalid="true"
                         type="date"
                         value={tercero.fechaNacimiento}
                         onChange={(e) => handleTerceroChange("fechaNacimiento", e.target.value)}
-                        aria-invalid={segundoSocioMenorEdad}
-                        aria-describedby={esSegundoSocio ? "segundo-socio-edad-ayuda" : undefined}
+                        aria-invalid={terceroMenorEdad}
+                        aria-describedby={
+                          esSegundoSocio || terceroMenorEdad ? "tercero-edad-ayuda" : undefined
+                        }
                       />
-                      {esSegundoSocio && (
+                      {(esSegundoSocio || terceroMenorEdad) && (
                         <p
-                          id="segundo-socio-edad-ayuda"
+                          id="tercero-edad-ayuda"
                           className={`text-xs leading-relaxed ${
-                            segundoSocioMenorEdad ? "text-red-700" : "text-slate-500"
+                            terceroMenorEdad ? "text-red-700" : "text-slate-500"
                           }`}
                         >
-                          {segundoSocioMenorEdad
-                            ? "El segundo socio debe tener 18 años o más."
+                          {terceroMenorEdad
+                            ? esSegundoSocio
+                              ? "El segundo socio debe tener 18 años o más."
+                              : "Esta persona debe tener 18 años o más."
                             : "Debe tener 18 años o más."}
                         </p>
                       )}
@@ -1580,7 +1597,7 @@ export function PasoTercero({
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                       <div className="grid gap-1.5">
                         <Label htmlFor="administrador-nombres">Nombres</Label>
                         <Input
@@ -1625,6 +1642,7 @@ export function PasoTercero({
                         <Label htmlFor="administrador-fecha">Fecha de nacimiento</Label>
                         <Input
                           id="administrador-fecha"
+                          data-validation-preserve-aria-invalid="true"
                           type="date"
                           value={administrador.fechaNacimiento}
                           onChange={(e) =>
@@ -2105,22 +2123,30 @@ export function PasoTercero({
                                     ? "elige, entre las personas herederas, a alguien que tenga ingresos estables."
                                     : "elige a alguien que no sea tu pariente y tenga ingresos estables."}
                                 </p>
-                                <div className="mt-4 flex items-start gap-3 border-t border-border pt-4">
-                                  <Checkbox
-                                    id="aceptar-riesgos-tercero"
-                                    checked={aceptaRiesgos}
-                                    onCheckedChange={(checked) =>
-                                      setAceptaRiesgos(checked === true)
-                                    }
-                                    className="mt-1"
-                                  />
-                                  <Label
-                                    htmlFor="aceptar-riesgos-tercero"
-                                    className="cursor-pointer font-normal leading-relaxed"
-                                  >
-                                    Entiendo que esta transferencia puede ser cuestionada y quedar
-                                    sin efecto. Aun así, quiero continuar con esta persona.
-                                  </Label>
+                                <div
+                                  data-validation-field
+                                  className="mt-4 border-t border-border pt-4"
+                                >
+                                  {/* El target de validación es un bloque, pero checkbox y texto
+                                      permanecen en una fila indivisible para que nunca se separen. */}
+                                  <div className="flex items-start gap-3">
+                                    <Checkbox
+                                      id="aceptar-riesgos-tercero"
+                                      data-validation-required="true"
+                                      checked={aceptaRiesgos}
+                                      onCheckedChange={(checked) =>
+                                        setAceptaRiesgos(checked === true)
+                                      }
+                                      className="mt-1"
+                                    />
+                                    <Label
+                                      htmlFor="aceptar-riesgos-tercero"
+                                      className="min-w-0 flex-1 cursor-pointer font-normal leading-relaxed"
+                                    >
+                                      Entiendo que esta transferencia puede ser cuestionada y quedar
+                                      sin efecto. Aun así, quiero continuar con esta persona.
+                                    </Label>
+                                  </div>
                                 </div>
                               </>
                             )}
@@ -2145,7 +2171,7 @@ export function PasoTercero({
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
                     <div className="grid gap-1.5">
                       <Label htmlFor="c-conyuge-nombres">Nombres</Label>
                       <Input
@@ -2271,16 +2297,15 @@ export function PasoTercero({
           )}
         </fieldset>
 
+        {mensajesValidacion}
+
         {/* Acciones inferiores */}
         <div className="mt-8 flex justify-between gap-4">
           <Button variant="outline" onClick={onVolver} className="w-full sm:w-auto">
             Volver
           </Button>
-          <Button
-            onClick={handleGuardar}
-            disabled={!soloLectura && !isFormValido()}
-            className="w-full sm:w-auto"
-          >
+          {/* La acción permanece habilitada para faltantes, pero las reglas legales bloquean el guardado. */}
+          <Button onClick={handleGuardar} className="w-full sm:w-auto">
             {soloLectura ? "Continuar" : esUltimoPasoFicha ? "Enviar ficha" : "Enviar y continuar"}
           </Button>
         </div>

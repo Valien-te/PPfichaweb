@@ -7,6 +7,7 @@ import { Label } from "@/shared/components/base/Label";
 import { toast } from "@/shared/components/base/Toaster";
 
 import { confirmarDatosPersonales, getClienteDatos } from "../gestiones-store";
+import { useValidacionCampos } from "./use-validacion-campos";
 
 // Comunas y Regiones de Chile para el autocompletado
 const COMUNAS_REGIONES: Record<string, string> = {
@@ -63,6 +64,7 @@ export function PasoDatosPersonales({
     region: clienteDatos.region,
   });
   const [confirmado, setConfirmado] = useState(false);
+  const { contenedorRef, mensajesValidacion, validarCampos } = useValidacionCampos();
 
   function handleChange(campo: keyof typeof datos, valor: string) {
     setDatos((prev) => {
@@ -105,14 +107,10 @@ export function PasoDatosPersonales({
     if (
       camposRequeridos.some((c) => !c || String(c).trim() === "") ||
       (regimenRequerido &&
-        (!datos.regimenMatrimonial || String(datos.regimenMatrimonial).trim() === ""))
+        (!datos.regimenMatrimonial || String(datos.regimenMatrimonial).trim() === "")) ||
+      !confirmado
     ) {
-      toast.warning("Por favor, completa todos los campos obligatorios antes de continuar.");
-      return;
-    }
-
-    if (!confirmado) {
-      toast.warning("Confirma que tus datos están correctos antes de continuar.");
+      validarCampos();
       return;
     }
     confirmarDatosPersonales(datos);
@@ -123,32 +121,11 @@ export function PasoDatosPersonales({
     onSiguiente();
   }
 
-  const camposRequeridos = [
-    datos.nombres,
-    datos.apellidoPaterno,
-    datos.apellidoMaterno,
-    datos.rut,
-    datos.fechaNacimiento,
-    datos.nacionalidad,
-    datos.profesion,
-    datos.estadoCivil,
-    datos.email,
-    datos.telefono,
-    datos.domicilio,
-    datos.comuna,
-    datos.region,
-  ];
-
-  const regimenRequerido =
-    datos.estadoCivil === "Casado/a" || datos.estadoCivil === "Acuerdo de Unión Civil";
-  const regimenValido =
-    !regimenRequerido || (datos.regimenMatrimonial && datos.regimenMatrimonial.trim() !== "");
-  const todosCamposLlenos =
-    camposRequeridos.every((c) => c && String(c).trim() !== "") && regimenValido;
-  const botonDeshabilitado = !todosCamposLlenos || !confirmado;
-
   return (
-    <div className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs space-y-6">
+    <div
+      ref={contenedorRef}
+      className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs space-y-6"
+    >
       {/* Encabezado del paso */}
       <div>
         <h2 className="text-lg font-semibold text-slate-800">Datos personales</h2>
@@ -169,7 +146,7 @@ export function PasoDatosPersonales({
         </datalist>
 
         {/* Grid de campos */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label htmlFor="nombres">Nombres</Label>
             <Input
@@ -321,10 +298,15 @@ export function PasoDatosPersonales({
         </div>
 
         {/* Declaración + acción */}
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div
+          data-validation-field
+          className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4"
+        >
           <div className="flex items-start gap-3">
             <Checkbox
               id="confirmar-datos"
+              data-validation-required="true"
+              data-validation-message="none"
               checked={soloLectura || confirmado}
               onCheckedChange={(checked) => setConfirmado(checked === true)}
               className="mt-1 disabled:opacity-100"
@@ -342,15 +324,14 @@ export function PasoDatosPersonales({
         </div>
       </fieldset>
 
+      {mensajesValidacion}
+
       <div className="mt-8 flex justify-between gap-4">
         <Button variant="outline" onClick={onVolver} className="w-full sm:w-auto">
           Volver al portal
         </Button>
-        <Button
-          onClick={handleGuardar}
-          disabled={!soloLectura && botonDeshabilitado}
-          className="w-full sm:w-auto"
-        >
+        {/* La acción permanece habilitada: al presionarla, el hook destaca cada faltante. */}
+        <Button onClick={handleGuardar} className="w-full sm:w-auto">
           {soloLectura
             ? "Continuar"
             : esUltimoPasoFicha

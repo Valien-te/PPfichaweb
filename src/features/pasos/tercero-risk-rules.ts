@@ -57,6 +57,11 @@ export function calcularEdad(
   return edad >= 0 ? edad : null;
 }
 
+export function esMayorDeEdad(fechaNacimiento: string, fechaReferencia?: Date): boolean {
+  const edad = calcularEdad(fechaNacimiento, fechaReferencia);
+  return edad !== null && edad >= 18;
+}
+
 export function debeEvaluarFacultadesMentales(
   fechaNacimiento: string,
   fechaReferencia?: Date,
@@ -113,7 +118,13 @@ export function evaluarRiesgoTercero(
       "Según lo que indicaste, esta persona no está legalmente habilitada para participar en la transferencia.",
     );
   }
-  if (edad !== null && edad < 21) {
+  if (edad !== null && edad < 18) {
+    // Decisión de negocio: la mayoría de edad es un impedimento absoluto. No se
+    // puede convertir en una señal aceptable mediante el consentimiento de riesgo.
+    impedimentos.push(
+      "Esta persona debe tener 18 años o más. Elige a otra persona para continuar.",
+    );
+  } else if (edad !== null && edad < 21) {
     // Tener entre 18 y 20 años no incapacita, pero puede exigir más antecedentes.
     senales.push({
       id: "menorDe21",

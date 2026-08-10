@@ -29,7 +29,7 @@ import {
   esTransferenciaVehiculoRegistroCivil,
 } from "./pasos/registro-civil-vehiculo-rules";
 import { evaluarLimiteTerceroInmobiliario } from "./pasos/tercero-inmobiliario-rules";
-import { resolverDocumentosFacultadesMentales } from "./pasos/tercero-risk-rules";
+import { esMayorDeEdad, resolverDocumentosFacultadesMentales } from "./pasos/tercero-risk-rules";
 import {
   CONTRATO_LIQUIDACION_SOCIEDAD_CONYUGAL,
   CONTRATO_PACTO_SUSTITUCION_REGIMEN,
@@ -622,10 +622,12 @@ export function completarTercero(
   datosOtorganteMandato?: PersonaSociedadDatos | null,
 ): boolean {
   const gestionActual = gestiones.find((gestion) => gestion.id === gestionId);
-  if (
-    datosTercero &&
-    correspondenALaMismaPersona(datosTercero.rut, getClienteDatos().rut)
-  ) {
+  if (datosTercero?.fechaNacimiento && !esMayorDeEdad(datosTercero.fechaNacimiento)) {
+    // La UI bloquea primero, pero el store repite la mayoría de edad para que una
+    // llamada alternativa nunca pueda guardar un tercero menor de 18 años.
+    return false;
+  }
+  if (datosTercero && correspondenALaMismaPersona(datosTercero.rut, getClienteDatos().rut)) {
     // El tercero, contraparte o apoderado debe ser otra persona. La validación se
     // repite en el store para impedir guardados que no provengan del formulario.
     return false;
@@ -633,12 +635,8 @@ export function completarTercero(
   if (
     datosTercero &&
     gestionActual &&
-    evaluarLimiteTerceroInmobiliario(
-      gestiones,
-      gestionId,
-      gestionActual.nombre,
-      datosTercero.rut,
-    ).estado === "limiteAlcanzado"
+    evaluarLimiteTerceroInmobiliario(gestiones, gestionId, gestionActual.nombre, datosTercero.rut)
+      .estado === "limiteAlcanzado"
   ) {
     // La UI advierte antes, pero el store repite la validación para que ninguna
     // llamada alternativa pueda guardar a una persona en una tercera escritura.
@@ -728,6 +726,13 @@ export function completarSegundoSocio(
   datosSegundoSocio: SegundoSocioDatos,
   datosAdministradorSociedad?: AdministradorSociedadDatos,
 ): boolean {
+  if (
+    !esMayorDeEdad(datosSegundoSocio.fechaNacimiento) ||
+    (datosAdministradorSociedad && !esMayorDeEdad(datosAdministradorSociedad.fechaNacimiento))
+  ) {
+    // Segundo socio, administrador y representante también deben ser personas adultas.
+    return false;
+  }
   if (correspondenALaMismaPersona(datosSegundoSocio.rut, getClienteDatos().rut)) {
     return false;
   }

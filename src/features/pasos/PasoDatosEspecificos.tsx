@@ -35,6 +35,7 @@ import {
 } from "../gestiones-store";
 import { obtenerPresentacionBienesMuebles } from "./datos-especificos-copy";
 import { debePedirAdministradorSociedad } from "./tercero-rules";
+import { useValidacionCampos } from "./use-validacion-campos";
 import {
   debeGuardarEstadoTransferenciaVehiculo,
   esContratoTransferenciaVehiculo,
@@ -253,6 +254,11 @@ export function PasoDatosEspecificos({
   const [valores, setValores] = useState<Record<string, any>>(
     () => gestion.valoresEspecificos ?? {},
   );
+  const {
+    contenedorRef: contenedorFormularioRef,
+    mensajesValidacion,
+    validarCampos,
+  } = useValidacionCampos();
 
   const normalizar = (str: string) =>
     str
@@ -686,6 +692,10 @@ export function PasoDatosEspecificos({
       return;
     }
 
+    if (!isFormValido() && !validarCampos()) {
+      return;
+    }
+
     let esValido = true;
     let mensajeError = "Por favor, completa todos los campos obligatorios antes de continuar.";
 
@@ -1054,7 +1064,10 @@ export function PasoDatosEspecificos({
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs">
+      <div
+        ref={contenedorFormularioRef}
+        className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs"
+      >
         <div className="mb-6">
           <h2 id="titulo-datos-especificos" className="text-lg font-semibold text-slate-800">
             {presentacionBienesMuebles
@@ -1196,7 +1209,7 @@ export function PasoDatosEspecificos({
                     onChange={(e) => handleFieldChange("direccion", e.target.value)}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 items-start gap-4">
                   <div className="grid gap-1.5">
                     <Label htmlFor="comuna">Comuna</Label>
                     <Input
@@ -1269,7 +1282,7 @@ export function PasoDatosEspecificos({
                           }
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 items-start gap-4">
                         <div className="grid gap-1.5">
                           <Label>Comuna</Label>
                           <Input
@@ -1322,7 +1335,7 @@ export function PasoDatosEspecificos({
 
             {/* ── GRUPO 3: Vehículos ── */}
             {(isGroupVehiculo() || isGroupPrenda()) && !isGroupLiquidacion() && (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid items-start gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label htmlFor="patente">Placa patente</Label>
                   <Input
@@ -1539,7 +1552,7 @@ export function PasoDatosEspecificos({
                   <RadioGroup
                     value={valores.tipoSociedad ?? ""}
                     onValueChange={(valor) => handleFieldChange("tipoSociedad", valor)}
-                    className="grid gap-3 sm:grid-cols-2"
+                    className="grid items-start gap-3 sm:grid-cols-2"
                   >
                     {[
                       {
@@ -1727,7 +1740,7 @@ export function PasoDatosEspecificos({
 
             {/* ── GRUPO 5: Compraventa de acciones ── */}
             {isGroupAcciones() && (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid items-start gap-4 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <div className="flex min-h-6 items-center gap-1.5">
                     <Label htmlFor="razonSocial">Razón social de la empresa</Label>
@@ -1813,7 +1826,7 @@ export function PasoDatosEspecificos({
             {/* ── GRUPO 6: Liquidación de Sociedad Conyugal ── */}
             {isGroupLiquidacion() && (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 items-start gap-4">
                   <div className="grid gap-1.5">
                     <Label htmlFor="comproInmueble">¿Compró inmuebles durante el matrimonio?</Label>
                     <Select
@@ -1898,7 +1911,7 @@ export function PasoDatosEspecificos({
                             }
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 items-start gap-4">
                           <div className="grid gap-1.5">
                             <Label>Comuna</Label>
                             <Input
@@ -1986,7 +1999,7 @@ export function PasoDatosEspecificos({
                             }
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 items-start gap-4">
                           <div className="grid gap-1.5">
                             <Label>Permiso al día</Label>
                             <select
@@ -2233,7 +2246,7 @@ export function PasoDatosEspecificos({
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 items-start gap-3">
                               <div className="grid gap-1.5">
                                 <Label htmlFor={`${idBien}-color`}>Color</Label>
                                 <Input
@@ -2307,7 +2320,7 @@ export function PasoDatosEspecificos({
                     onChange={(e) => handleFieldChange("direccion", e.target.value)}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 items-start gap-4">
                   <div className="grid gap-1.5">
                     <Label htmlFor="comuna">Comuna</Label>
                     <Input
@@ -2352,7 +2365,7 @@ export function PasoDatosEspecificos({
                     <p className="text-sm text-slate-500">
                       Selecciona uno o más tipos. Luego completa los datos de cada bien.
                     </p>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid items-start gap-3 sm:grid-cols-2 lg:grid-cols-4">
                       <Label
                         htmlFor="m-inmuebles"
                         className="flex min-h-14 cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 font-medium text-slate-800 transition-colors hover:border-primary/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/[0.04]"
@@ -2466,7 +2479,7 @@ export function PasoDatosEspecificos({
                             />
                           </div>
 
-                          <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="grid items-start gap-4 sm:grid-cols-2">
                             <div className="grid gap-1.5">
                               <Label htmlFor={`mandato-inmueble-comuna-${idx}`}>Comuna</Label>
                               <Input
@@ -2542,7 +2555,7 @@ export function PasoDatosEspecificos({
                         onChange={(e) => handleFieldChange("patente", e.target.value)}
                       />
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid items-start gap-4 sm:grid-cols-2">
                       <div className="grid gap-1.5">
                         <Label htmlFor="mandato-permiso">Permiso al día</Label>
                         <select
@@ -2604,7 +2617,7 @@ export function PasoDatosEspecificos({
                               </Button>
                             )}
                           </div>
-                          <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="grid items-start gap-4 sm:grid-cols-2">
                             <div className="grid gap-1.5">
                               <Label htmlFor={`mandato-mueble-cantidad-${idx}`}>Cantidad</Label>
                               <Input
@@ -2702,7 +2715,7 @@ export function PasoDatosEspecificos({
                         Identifica la sociedad y la participación incluida en el mandato.
                       </p>
                     </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid items-start gap-4 sm:grid-cols-2">
                       <div className="grid gap-1.5">
                         <div className="flex min-h-6 items-center gap-1.5">
                           <Label htmlFor="mandato-razon-social">Razón social de la empresa</Label>
@@ -2835,7 +2848,7 @@ export function PasoDatosEspecificos({
                     onValueChange={(value) =>
                       handleFieldChange("formaConstitucionSociedadPatente", value)
                     }
-                    className="mt-3 grid gap-3 sm:grid-cols-2"
+                    className="mt-3 grid items-start gap-3 sm:grid-cols-2"
                     aria-required="true"
                   >
                     <div className="flex items-center gap-2">
@@ -2867,7 +2880,7 @@ export function PasoDatosEspecificos({
             {/* ── GRUPO 11: Establecimiento Comercial / Derecho de Llaves ── */}
             {isGroupEstablecimiento() && (
               <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 items-start gap-4">
                   <div className="grid gap-1.5">
                     <Label htmlFor="tieneArriendo">¿Tiene contrato de arriendo?</Label>
                     <Select
@@ -2914,7 +2927,7 @@ export function PasoDatosEspecificos({
                         onChange={(e) => handleFieldChange("direccion", e.target.value)}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 items-start gap-4">
                       <div className="grid gap-1.5">
                         <Label>Comuna</Label>
                         <Input
@@ -3024,11 +3037,14 @@ export function PasoDatosEspecificos({
           </div>
         </fieldset>
 
+        {mensajesValidacion}
+
         <div className="mt-8 flex justify-between">
           <Button variant="outline" onClick={onVolver}>
             Volver
           </Button>
-          <Button onClick={handleGuardar} disabled={!soloLectura && !isFormValido()}>
+          {/* La acción permanece habilitada: al presionarla, el hook destaca cada faltante. */}
+          <Button onClick={handleGuardar}>
             {soloLectura
               ? "Continuar"
               : debeGuardarEstadoTransferenciaVehiculo(
@@ -3039,10 +3055,7 @@ export function PasoDatosEspecificos({
                 ? "Guardar estado"
                 : isGroupVehiculo() &&
                     puedeGuardarEsperaPrenda(valores) &&
-                    !permisoCirculacionBloqueaTransferencia(
-                      nombreContrato,
-                      valores.permisoAlDia,
-                    )
+                    !permisoCirculacionBloqueaTransferencia(nombreContrato, valores.permisoAlDia)
                   ? "Guardar en espera"
                   : esUltimoPasoFicha
                     ? "Enviar ficha"

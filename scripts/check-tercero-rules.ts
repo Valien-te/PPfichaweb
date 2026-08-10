@@ -795,6 +795,19 @@ assert.equal(terceroRiesgoAlto.impedimentos.length, 0);
 assert.deepEqual(
   evaluarRiesgoTercero(
     {
+      fechaNacimiento: "2010-04-10",
+      relacion: "amigo",
+      plenamenteCapaz: "si",
+      ingresosEstables: "si",
+    },
+    fechaReferencia,
+  ).impedimentos,
+  ["Esta persona debe tener 18 años o más. Elige a otra persona para continuar."],
+);
+
+assert.deepEqual(
+  evaluarRiesgoTercero(
+    {
       fechaNacimiento: "1965-06-15",
       relacion: "amigo",
       plenamenteCapaz: "no",

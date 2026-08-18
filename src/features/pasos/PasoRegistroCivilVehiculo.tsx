@@ -1,7 +1,10 @@
 import { Button } from "@/shared/components/base/Button";
 
 import { completarOrientacionRegistroCivilVehiculo } from "../gestiones-store";
-import { URL_REQUISITOS_TRANSFERENCIA_REGISTRO_CIVIL } from "./registro-civil-vehiculo-rules";
+import {
+  URL_AGENDAR_TRANSFERENCIA_REGISTRO_CIVIL,
+  URL_REQUISITOS_TRANSFERENCIA_REGISTRO_CIVIL,
+} from "./registro-civil-vehiculo-rules";
 
 interface PasoRegistroCivilVehiculoProps {
   esUltimoPasoFicha?: boolean;
@@ -14,7 +17,11 @@ interface PasoRegistroCivilVehiculoProps {
 const instrucciones = [
   {
     titulo: "Agenda tu atención",
-    descripcion: "Reserva una hora en una oficina del Registro Civil. Necesitarás tu ClaveÚnica.",
+    descripcion: "en una oficina del Registro Civil. Necesitarás tu ClaveÚnica.",
+    enlace: {
+      href: URL_AGENDAR_TRANSFERENCIA_REGISTRO_CIVIL,
+      texto: "Reserva una hora",
+    },
   },
   {
     titulo: "Asistan con los documentos",
@@ -78,7 +85,22 @@ export function PasoRegistroCivilVehiculo({
             <div className="min-w-0 pt-0.5">
               <h3 className="text-sm font-semibold text-foreground">{instruccion.titulo}</h3>
               <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                {instruccion.descripcion}
+                {instruccion.enlace ? (
+                  <>
+                    <a
+                      href={instruccion.enlace.href}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-primary underline-offset-4 hover:underline"
+                      aria-label={`${instruccion.enlace.texto} en el Registro Civil (se abre en una nueva pestaña)`}
+                    >
+                      {instruccion.enlace.texto}
+                    </a>{" "}
+                    {instruccion.descripcion}
+                  </>
+                ) : (
+                  instruccion.descripcion
+                )}
               </p>
             </div>
           </li>

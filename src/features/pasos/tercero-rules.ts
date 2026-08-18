@@ -25,6 +25,11 @@ export interface CompletitudPasosGestion {
   terceroCompleto: boolean;
 }
 
+export interface PresentacionPasoTercero {
+  titulo: string;
+  bajada: string;
+}
+
 const CONTRATOS_CON_CONYUGE_CONDICIONAL = new Set(
   [
     "Aporte inmobiliario SRL",
@@ -70,6 +75,89 @@ function normalizarValorRegla(valor: unknown): string {
 
 export function esContratoConSegundoSocio(nombreContrato: string): boolean {
   return normalizarValorRegla(nombreContrato).includes("constitucion de sociedad");
+}
+
+/**
+ * Resuelve el título y la bajada de la persona solicitada en el paso Tercero.
+ *
+ * El paso se reutiliza para roles distintos (cónyuge, socio, apoderado, contraparte
+ * y tercero de confianza). En las transferencias comerciales, la bajada nombra el
+ * objeto concreto para no describir acciones, patentes o un establecimiento como
+ * "bienes" genéricos. Registro Civil conserva su presentación en su pantalla propia.
+ */
+export function obtenerPresentacionPasoTercero(nombreContrato: string): PresentacionPasoTercero {
+  const contrato = normalizarValorRegla(nombreContrato);
+
+  if (esContratoConSegundoSocio(nombreContrato)) {
+    return {
+      titulo: "Datos del segundo socio",
+      bajada: "Ingresa los mismos datos personales que usamos para los demás comparecientes.",
+    };
+  }
+
+  if (CONTRATOS_SOLO_CONYUGE.has(contrato)) {
+    return {
+      titulo: "Datos de tu cónyuge",
+      bajada: "Completa la información personal de tu cónyuge para la redacción de los documentos.",
+    };
+  }
+
+  if (contrato === normalizarValorRegla("Mandato")) {
+    return {
+      titulo: "Persona apoderada",
+      bajada:
+        "Primero indica quién otorgará el poder y luego completa los datos de quien firmará en su nombre.",
+    };
+  }
+
+  if (contrato === normalizarValorRegla("Mandato con autocontrato")) {
+    return {
+      titulo: "Firma con autocontrato",
+      bajada: "Indica cuál de las dos partes firmará también en representación de la otra.",
+    };
+  }
+
+  if (contrato.includes("resciliacion")) {
+    return {
+      titulo: "Datos de la otra parte del contrato",
+      bajada:
+        "Ingresa los datos de la persona con quien celebraste el contrato que quieres resciliar.",
+    };
+  }
+
+  if (contrato.includes("compraventa de acciones")) {
+    return {
+      titulo: "Datos de tu tercero de confianza",
+      bajada: "Completa los datos de la persona que recibirá tus acciones o derechos sociales.",
+    };
+  }
+
+  if (contrato.includes("compraventa de establecimiento comercial")) {
+    return {
+      titulo: "Datos de tu tercero de confianza",
+      bajada: "Completa los datos de la persona que recibirá el establecimiento comercial.",
+    };
+  }
+
+  if (contrato.includes("compraventa de patente comercial")) {
+    return {
+      titulo: "Datos de tu tercero de confianza",
+      bajada: "Completa los datos de la persona que recibirá la patente comercial.",
+    };
+  }
+
+  if (contrato.includes("aporte inmobiliario srl")) {
+    return {
+      titulo: "Datos de tu tercero de confianza",
+      bajada:
+        "Completa los datos de la persona que participará contigo en la sociedad a la que aportarás el inmueble.",
+    };
+  }
+
+  return {
+    titulo: "Datos de tu tercero de confianza",
+    bajada: "Ingresa los datos de la persona que elegiste para transferirle tus bienes.",
+  };
 }
 
 export function debeMostrarPasoDocumentos(

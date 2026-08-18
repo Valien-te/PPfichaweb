@@ -48,6 +48,7 @@ import {
 import {
   debeSolicitarConyugeTercero,
   obtenerModoCapturaTercero,
+  obtenerPresentacionPasoTercero,
   requiereDatosAdministradorSociedad,
 } from "./tercero-rules";
 import { useValidacionCampos } from "./use-validacion-campos";
@@ -349,6 +350,7 @@ export function PasoTercero({
     esSegundoSocio && requiereDatosAdministradorSociedad(tipoSociedad, administradorSociedad);
   const esRepresentanteSociedadAnonima = tipoSociedad === "sa";
   const esResciliacion = () => normalizar(nombreContrato).includes("resciliacion");
+  const presentacionPasoTercero = obtenerPresentacionPasoTercero(nombreContrato);
 
   const esCompraventaOCesionOAcciones = () => {
     const norm = normalizar(nombreContrato);
@@ -903,11 +905,10 @@ export function PasoTercero({
           {esConyugeContrato() && (
             <div className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-slate-800">Datos de tu cónyuge</h2>
-                <p className="text-sm text-slate-500 mt-1">
-                  Completa la información personal de tu cónyuge para la redacción de los
-                  documentos.
-                </p>
+                <h2 className="text-lg font-semibold text-slate-800">
+                  {presentacionPasoTercero.titulo}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">{presentacionPasoTercero.bajada}</p>
               </div>
 
               <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
@@ -1041,27 +1042,9 @@ export function PasoTercero({
               <div className="rounded-xl border border-black/[0.04] bg-white p-6 sm:p-8 shadow-xs space-y-6">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-800">
-                    {esSegundoSocio
-                      ? "Datos del segundo socio"
-                      : esMandatoGeneral
-                        ? "Persona apoderada"
-                        : esMandatoAutocontrato
-                          ? "Firma con autocontrato"
-                          : esResciliacion()
-                            ? "Datos de la otra parte del contrato"
-                            : "Datos de tu tercero de confianza"}
+                    {presentacionPasoTercero.titulo}
                   </h2>
-                  <p className="text-sm text-slate-500 mt-1">
-                    {esSegundoSocio
-                      ? "Ingresa los mismos datos personales que usamos para los demás comparecientes."
-                      : esMandatoGeneral
-                        ? "Primero indica quién otorgará el poder y luego completa los datos de quien firmará en su nombre."
-                        : esMandatoAutocontrato
-                          ? "Indica cuál de las dos partes firmará también en representación de la otra."
-                          : esResciliacion()
-                            ? "Ingresa los datos de la persona con quien celebraste el contrato que quieres resciliar."
-                            : "Ingresa los datos de la persona que elegiste para transferirle tus bienes."}
-                  </p>
+                  <p className="text-sm text-slate-500 mt-1">{presentacionPasoTercero.bajada}</p>
                 </div>
 
                 {esCesionDerechosHereditarios && (

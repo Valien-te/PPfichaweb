@@ -40,6 +40,21 @@ function obtenerDestinoMensaje(control: HTMLElement): HTMLElement {
   );
 }
 
+function obtenerGrupoValidacion(control: HTMLElement, index: number) {
+  const grupo = control.closest<HTMLElement>("[data-validation-group]");
+  if (!grupo) return null;
+
+  const grupoId = grupo.id || `grupo-validacion-${index + 1}`;
+  if (!grupo.id) grupo.id = grupoId;
+
+  return {
+    destinoMensaje:
+      grupo.querySelector<HTMLElement>("[data-validation-group-message-target]") ?? grupo,
+    mensaje: grupo.dataset.validationGroupMessage ?? "Completa los datos faltantes para continuar.",
+    mensajeId: grupo.dataset.validationGroupMessageId ?? `${grupoId}-mensaje-error`,
+  };
+}
+
 function controlEstaIncompleto(control: HTMLElement): boolean {
   if (
     control.hasAttribute("disabled") ||
@@ -80,13 +95,16 @@ function detectarCamposIncompletos(contenedor: HTMLElement | null): CampoIncompl
     .map((control, index) => {
       const controlId = control.id || `campo-obligatorio-${index + 1}`;
       if (!control.id) control.id = controlId;
+      const grupoValidacion = obtenerGrupoValidacion(control, index);
 
       return {
         controlId,
-        destinoMensaje: obtenerDestinoMensaje(control),
+        destinoMensaje: grupoValidacion?.destinoMensaje ?? obtenerDestinoMensaje(control),
         mensaje:
-          control.dataset.validationMessage === "none" ? null : obtenerMensajeControl(control),
-        mensajeId: `${controlId}-mensaje-error`,
+          control.dataset.validationMessage === "none"
+            ? null
+            : (grupoValidacion?.mensaje ?? obtenerMensajeControl(control)),
+        mensajeId: grupoValidacion?.mensajeId ?? `${controlId}-mensaje-error`,
       };
     });
 }
@@ -116,8 +134,9 @@ function limpiarMarcasValidacion(contenedor: HTMLElement) {
 
 export function useValidacionCampos() {
   // Decisión UX compartida: la completitud de campos no deshabilita el botón.
-  // Los errores aparecen solo tras intentar avanzar, uno bajo cada control, y
-  // luego se actualizan de forma independiente mientras la persona corrige.
+  // Los errores aparecen solo tras intentar avanzar y se actualizan mientras la
+  // persona corrige. Por defecto hay uno bajo cada control; una colección marcada
+  // con data-validation-group consolida el copy sin quitar el estado de cada campo.
   const contenedorRef = useRef<HTMLDivElement>(null);
   const [validacionIntentada, setValidacionIntentada] = useState(false);
   const [camposIncompletos, setCamposIncompletos] = useState<CampoIncompleto[]>([]);
@@ -192,8 +211,15 @@ export function useValidacionCampos() {
     return true;
   }
 
+  const mensajesUnicos = new Map<string, CampoIncompleto>();
+  for (const campo of camposIncompletos) {
+    if (campo.mensaje && !mensajesUnicos.has(campo.mensajeId)) {
+      mensajesUnicos.set(campo.mensajeId, campo);
+    }
+  }
+
   const mensajesValidacion = validacionIntentada
-    ? camposIncompletos.map((campo) =>
+    ? Array.from(mensajesUnicos.values()).map((campo) =>
         campo.mensaje
           ? createPortal(
               <p

@@ -2063,7 +2063,13 @@ export function PasoDatosEspecificos({
 
             {/* ── GRUPO 6: Singularización de bienes muebles ── */}
             {isGroupBienesMuebles() && (
-              <section className="space-y-4" aria-labelledby="titulo-datos-especificos">
+              <section
+                className="space-y-4"
+                aria-labelledby="titulo-datos-especificos"
+                data-validation-group
+                data-validation-group-message="Completa los datos faltantes para continuar."
+                data-validation-group-message-id="bienes-muebles-mensaje-error"
+              >
                 {bienesSingularizados.length === 0 ? (
                   <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
                     <p className="text-sm text-muted-foreground">Aún no has agregado bienes.</p>
@@ -2291,9 +2297,7 @@ export function PasoDatosEspecificos({
 
                 {bienesSingularizados.length > 0 && (
                   <>
-                    <p className="text-sm text-muted-foreground">
-                      Completa todos los campos de cada bien para continuar.
-                    </p>
+                    <div data-validation-group-message-target className="empty:hidden" />
                     <Button
                       type="button"
                       variant="outline"

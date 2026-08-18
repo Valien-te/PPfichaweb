@@ -85,6 +85,12 @@ un mensaje bajo una declaración que ya explica la acción.
 Este patrón solo cubre completitud. Los impedimentos legales o técnicos conservan sus
 mensajes y bloqueos específicos.
 
+En las tablas editables de bienes muebles, todos los campos incompletos conservan el borde
+de error y el foco va al primero, pero el texto se consolida en un único mensaje debajo de
+la colección. Así se evita repetir el mismo mensaje dentro de varias celdas. Esta excepción
+se aplica a Compraventa de bienes muebles y Comodato de bienes muebles; los formularios y
+colecciones presentados como tarjetas mantienen mensajes cercanos a cada control.
+
 Si corresponde cargar documentos, la confirmación conduce a esa etapa. Si no corresponde,
 la gestión vuelve al portal para su revisión.
 
@@ -146,7 +152,34 @@ Fuente: [`src/features/regimen-patrimonial-rules.ts`](src/features/regimen-patri
   se solicitan sus datos completos.
 - Transferencia de vehículo RC reemplaza el tercero por instrucciones del Registro Civil.
 
+En esa transferencia, la bajada del primer paso comienza con **Reserva una hora**, un enlace
+integrado en el texto que lleva directamente al sistema institucional de reservas del
+Registro Civil. Se abre en una pestaña nueva y la persona debe elegir `Vehículos` y luego
+`Transferencia de vehículo`. La dirección vive en `registro-civil-vehiculo-rules.ts`,
+separada del enlace informativo de requisitos, para que ambos destinos puedan mantenerse de
+forma independiente.
+
 Fuente: [`src/features/pasos/tercero-rules.ts`](src/features/pasos/tercero-rules.ts).
+
+#### Presentación del paso Tercero
+
+El mismo paso muestra roles diferentes, por lo que su título y su bajada se resuelven
+desde `tercero-rules.ts` y no directamente en la pantalla. Los contratos de transferencia
+que no corresponden a la bajada genérica sobre bienes nombran expresamente lo que recibe
+o la función que cumple la persona:
+
+| Contrato                                      | Título                           | Bajada                                                                                                  |
+| --------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Compraventa de acciones (Régimen tradicional) | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá tus acciones o derechos sociales.                         |
+| Compraventa de acciones (Empresa en un Día)   | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá tus acciones o derechos sociales.                         |
+| Compraventa de establecimiento comercial      | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá el establecimiento comercial.                             |
+| Compraventa de patente comercial              | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá la patente comercial.                                     |
+| Aporte inmobiliario SRL                       | Datos de tu tercero de confianza | Completa los datos de la persona que participará contigo en la sociedad a la que aportarás el inmueble. |
+
+Los demás terceros de confianza conservan la bajada general: “Ingresa los datos de la
+persona que elegiste para transferirle tus bienes”. Cónyuges, segundos socios, apoderados,
+autocontratos, resciliaciones y la transferencia ante Registro Civil mantienen sus títulos
+y textos específicos.
 
 ### Tercero de confianza y señales de riesgo
 

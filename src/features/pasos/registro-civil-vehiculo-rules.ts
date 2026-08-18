@@ -11,6 +11,14 @@ export const DOCUMENTO_COMPROBANTE_TRANSFERENCIA_REGISTRO_CIVIL = "Comprobante d
 export const URL_REQUISITOS_TRANSFERENCIA_REGISTRO_CIVIL =
   "https://www.chileatiende.gob.cl/fichas/3343-solicitar-la-transferencia-de-dominio-de-vehiculos-motorizados-ante-un-oficial-civil";
 
+/**
+ * El Registro Civil centraliza en esta ruta sus reservas presenciales, incluida la
+ * opción Vehículos > Transferencia de vehículo. Se mantiene fuera de la vista para
+ * que un eventual cambio institucional se actualice desde una sola fuente.
+ */
+export const URL_AGENDAR_TRANSFERENCIA_REGISTRO_CIVIL =
+  "https://solicitudeswebrc.srcei.cl/ReservaDeHoraSRCEI/web/init.srcei";
+
 function normalizarContrato(valor: string): string {
   return valor
     .normalize("NFD")

@@ -49,6 +49,7 @@ import {
   esTransferenciaDeInmueble,
   obtenerModoCapturaTercero,
   obtenerPasoEntradaGestion,
+  obtenerPresentacionPasoTercero,
   obtenerPrimerPasoPendienteGestion,
   obtenerSecuenciaPasosGestion,
   requiereDatosAdministradorSociedad,
@@ -74,6 +75,70 @@ const contratosConConyugeCondicional = [
   "Mandato",
   "Mandato con autocontrato",
 ];
+
+const presentacionesEspecificas = [
+  {
+    contratos: [
+      "Compraventa de acciones (Régimen tradicional)",
+      "Compraventa de acciones (Empresa en un Día)",
+    ],
+    bajada: "Completa los datos de la persona que recibirá tus acciones o derechos sociales.",
+  },
+  {
+    contratos: ["Compraventa de establecimiento comercial"],
+    bajada: "Completa los datos de la persona que recibirá el establecimiento comercial.",
+  },
+  {
+    contratos: ["Compraventa de patente comercial"],
+    bajada: "Completa los datos de la persona que recibirá la patente comercial.",
+  },
+  {
+    contratos: ["Aporte inmobiliario SRL"],
+    bajada:
+      "Completa los datos de la persona que participará contigo en la sociedad a la que aportarás el inmueble.",
+  },
+] as const;
+
+// El copy forma parte de la regla por contrato: ambos tipos de compraventa de
+// acciones comparten bajada y los demás objetos comerciales conservan la propia.
+for (const presentacion of presentacionesEspecificas) {
+  for (const contrato of presentacion.contratos) {
+    assert.deepEqual(obtenerPresentacionPasoTercero(contrato), {
+      titulo: "Datos de tu tercero de confianza",
+      bajada: presentacion.bajada,
+    });
+  }
+}
+assert.deepEqual(obtenerPresentacionPasoTercero("  APORTE INMOBILIARIO srl "), {
+  titulo: "Datos de tu tercero de confianza",
+  bajada:
+    "Completa los datos de la persona que participará contigo en la sociedad a la que aportarás el inmueble.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Compraventa de inmueble"), {
+  titulo: "Datos de tu tercero de confianza",
+  bajada: "Ingresa los datos de la persona que elegiste para transferirle tus bienes.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Constitución de sociedades"), {
+  titulo: "Datos del segundo socio",
+  bajada: "Ingresa los mismos datos personales que usamos para los demás comparecientes.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Mandato"), {
+  titulo: "Persona apoderada",
+  bajada:
+    "Primero indica quién otorgará el poder y luego completa los datos de quien firmará en su nombre.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Mandato con autocontrato"), {
+  titulo: "Firma con autocontrato",
+  bajada: "Indica cuál de las dos partes firmará también en representación de la otra.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Resciliación"), {
+  titulo: "Datos de la otra parte del contrato",
+  bajada: "Ingresa los datos de la persona con quien celebraste el contrato que quieres resciliar.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Renuncia a los gananciales"), {
+  titulo: "Datos de tu cónyuge",
+  bajada: "Completa la información personal de tu cónyuge para la redacción de los documentos.",
+});
 
 // La tarjeta mock parte en Documentos, por lo que todos los pasos previos deben
 // contener antecedentes sintéticos completos y revisables.
@@ -847,3 +912,4 @@ assert.deepEqual(
 console.log("✓ Reglas de tercero y cónyuge válidas");
 console.log(`  ${contratosConConyugeCondicional.length} contratos con cónyuge condicional`);
 console.log("  3 contratos exclusivos de cónyuge");
+console.log("  5 contratos con bajada específica para su tercero de confianza");

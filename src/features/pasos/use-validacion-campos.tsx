@@ -96,14 +96,15 @@ function detectarCamposIncompletos(contenedor: HTMLElement | null): CampoIncompl
       const controlId = control.id || `campo-obligatorio-${index + 1}`;
       if (!control.id) control.id = controlId;
       const grupoValidacion = obtenerGrupoValidacion(control, index);
+      const mensajePersonalizado = control.dataset.validationMessage;
 
       return {
         controlId,
         destinoMensaje: grupoValidacion?.destinoMensaje ?? obtenerDestinoMensaje(control),
         mensaje:
-          control.dataset.validationMessage === "none"
+          mensajePersonalizado === "none"
             ? null
-            : (grupoValidacion?.mensaje ?? obtenerMensajeControl(control)),
+            : (grupoValidacion?.mensaje ?? mensajePersonalizado ?? obtenerMensajeControl(control)),
         mensajeId: grupoValidacion?.mensajeId ?? `${controlId}-mensaje-error`,
       };
     });

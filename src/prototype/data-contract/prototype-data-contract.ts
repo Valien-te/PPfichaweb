@@ -1967,6 +1967,30 @@ export const prototypeDataContract = definePrototypeDataContract({
           ],
           "internal",
         ),
+        claveTributariaEmpresa: {
+          id: "claveTributariaEmpresa",
+          productDescription:
+            "Clave tributaria de la empresa que se utilizará después de la firma para ingresar al Servicio de Impuestos Internos e informar el cambio de socios o accionistas.",
+          dataType: "string",
+          required: true,
+          usage: {
+            visible: true,
+            editable: true,
+            calculated: false,
+            technical: false,
+          },
+          usedIn: [
+            "Datos del bien de Compraventa de acciones (Régimen tradicional)",
+            "Datos del bien de Compraventa de acciones (Empresa en un Día)",
+          ],
+          origin: "generatedByUsability",
+          source: { kind: "unknown" },
+          dataClassification: "restricted",
+          technicalValidation: {
+            status: "pendingTi",
+            note: "TI y Seguridad deben definir la fuente y persistencia definitiva, cifrado en tránsito y reposo, acceso exclusivo del equipo autorizado, exclusión de logs y analítica, y eliminación después de informar la transferencia al SII. La clave no debe sincronizarse con mandatos vinculados.",
+          },
+        },
         tipoSocietarioAcciones: {
           id: "tipoSocietarioAcciones",
           productDescription:

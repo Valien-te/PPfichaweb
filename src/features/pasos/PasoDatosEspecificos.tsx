@@ -1,4 +1,4 @@
-import { CircleHelp, Plus, Trash2 } from "lucide-react";
+import { CircleHelp, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { Button } from "@/shared/components/base/Button";
@@ -117,6 +117,10 @@ function datosAccionesCompletos(valores: Record<string, unknown>): boolean {
   }
 
   return false;
+}
+
+function claveTributariaEmpresaCompleta(valores: Record<string, unknown>): boolean {
+  return String(valores.claveTributariaEmpresa ?? "").trim() !== "";
 }
 
 function obtenerInmueblesMandato(valores: Record<string, any>) {
@@ -254,6 +258,7 @@ export function PasoDatosEspecificos({
   const [valores, setValores] = useState<Record<string, any>>(
     () => gestion.valoresEspecificos ?? {},
   );
+  const [mostrarClaveTributaria, setMostrarClaveTributaria] = useState(false);
   const {
     contenedorRef: contenedorFormularioRef,
     mensajesValidacion,
@@ -541,7 +546,7 @@ export function PasoDatosEspecificos({
     }
 
     if (isGroupAcciones()) {
-      return datosAccionesCompletos(valores);
+      return datosAccionesCompletos(valores) && claveTributariaEmpresaCompleta(valores);
     }
 
     if (isGroupLiquidacion()) {
@@ -766,10 +771,9 @@ export function PasoDatosEspecificos({
         mensajeError = errorDatosSociedad;
       }
     } else if (isGroupAcciones()) {
-      if (!datosAccionesCompletos(valores)) {
+      if (!datosAccionesCompletos(valores) || !claveTributariaEmpresaCompleta(valores)) {
         esValido = false;
-        mensajeError =
-          "Completa la razón social, el RUT, el tipo societario y la participación que transferirás.";
+        mensajeError = "Completa los datos de la empresa y la participación que transferirás.";
       }
     } else if (isGroupLiquidacion()) {
       if (!tieneValor(valores.comproInmueble) || !tieneValor(valores.comproVehiculo)) {
@@ -999,7 +1003,10 @@ export function PasoDatosEspecificos({
 
   const isGroupAcciones = () => {
     const norm = normalizar(nombreContrato);
-    return norm.includes("acciones");
+    return (
+      norm === normalizar("Compraventa de acciones (Régimen tradicional)") ||
+      norm === normalizar("Compraventa de acciones (Empresa en un Día)")
+    );
   };
 
   const isGroupLiquidacion = () =>
@@ -1820,6 +1827,48 @@ export function PasoDatosEspecificos({
                     />
                   </div>
                 )}
+
+                <div className="col-span-full grid gap-1.5" data-validation-field>
+                  <Label htmlFor="claveTributariaEmpresa">Clave tributaria de la empresa</Label>
+                  <p
+                    id="claveTributariaEmpresa-ayuda"
+                    className="text-sm leading-relaxed text-slate-500"
+                  >
+                    La usaremos después de la firma para ingresar al SII e informar el cambio de
+                    socios o accionistas de esta empresa. No la utilizaremos para otros trámites.
+                  </p>
+                  <div className="relative">
+                    <Input
+                      id="claveTributariaEmpresa"
+                      type={mostrarClaveTributaria ? "text" : "password"}
+                      autoComplete="off"
+                      placeholder="Ingresa la clave tributaria"
+                      value={valores.claveTributariaEmpresa ?? ""}
+                      onChange={(event) =>
+                        handleFieldChange("claveTributariaEmpresa", event.target.value)
+                      }
+                      aria-describedby="claveTributariaEmpresa-ayuda"
+                      data-validation-message="Ingresa la clave tributaria de la empresa."
+                      className="pr-32 [&::-ms-clear]:hidden [&::-ms-reveal]:hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-pressed={mostrarClaveTributaria}
+                      aria-controls="claveTributariaEmpresa"
+                      className="absolute right-1 top-1/2 -translate-y-1/2"
+                      onClick={() => setMostrarClaveTributaria((visible) => !visible)}
+                    >
+                      {mostrarClaveTributaria ? (
+                        <EyeOff aria-hidden="true" />
+                      ) : (
+                        <Eye aria-hidden="true" />
+                      )}
+                      {mostrarClaveTributaria ? "Ocultar clave" : "Mostrar clave"}
+                    </Button>
+                  </div>
+                </div>
               </div>
             )}
 

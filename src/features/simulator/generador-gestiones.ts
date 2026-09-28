@@ -12,6 +12,7 @@ import { resolverDocumentosGestion } from "../pasos/documentos-rules";
 export const CONTRATOS_DISPONIBLES = [
   "Compraventa de Inmueble",
   "Cancelación y Alzamiento de Hipoteca",
+  "Cancelación de precio",
   "Compraventa de Inmueble y usufructo",
   "Cesión de derechos",
   "Compraventa de nuda propiedad",
@@ -32,6 +33,7 @@ export const CONTRATOS_DISPONIBLES = [
   "Compraventa de acciones (Empresa en un Día)",
   "Constitución de sociedades",
   "Compraventa de establecimiento comercial",
+  "Compraventa de derecho de llaves",
   "Compraventa de patente comercial",
   "Contrato de arriendo",
   "Aporte inmobiliario SRL",
@@ -49,8 +51,14 @@ export function generarGestionDesdePlantilla(nombreContrato: string): Gestion {
       "Término de común acuerdo de un contrato celebrado anteriormente con otra persona.",
     "Renuncia a los gananciales":
       "Preparación de los antecedentes necesarios para formalizar la renuncia a los gananciales.",
+    "Cancelación de precio":
+      "Declaración mediante escritura de que el precio de la compraventa del inmueble ya fue pagado.",
     "Transferencia de vehículo RC":
       "Transferencia del vehículo directamente en el Registro Civil mediante declaración consensual, sin preparar un contrato notarial.",
+    "Compraventa de establecimiento comercial":
+      "Transferencia de los bienes tangibles que forman parte del establecimiento comercial.",
+    "Compraventa de derecho de llaves":
+      "Transferencia del valor intangible asociado al funcionamiento y clientela del negocio.",
   };
   const resumen =
     resumenPorContrato[nombreContrato] ??

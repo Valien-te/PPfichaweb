@@ -85,6 +85,7 @@ assert.deepEqual(
 for (const contrato of [
   "Compraventa de acciones (Régimen tradicional)",
   "Compraventa de establecimiento comercial",
+  "Compraventa de derecho de llaves",
 ]) {
   assert.deepEqual(nombres(contrato), documentosSociedad, contrato);
 }
@@ -102,19 +103,19 @@ assert.deepEqual(
   [],
 );
 assert.deepEqual(nombres("Contrato de arriendo"), [DOCUMENTO_DOMINIO_VIGENTE]);
+assert.deepEqual(nombres("Cancelación de precio"), [
+  DOCUMENTO_DOMINIO_VIGENTE,
+  DOCUMENTO_INSCRIPCION_CONSERVATORIA,
+]);
 assert.deepEqual(nombres("Resciliación"), [DOCUMENTO_COPIA_CONTRATO]);
-assert.equal(
-  nombres("Renuncia a los gananciales").some((nombre) =>
-    nombre.toLocaleLowerCase("es-CL").includes("cédula"),
-  ),
-  false,
-);
+assert.deepEqual(nombres("Renuncia a los gananciales"), []);
 
 for (const contrato of [
   "Compraventa de bienes muebles",
   "Comodato de bienes muebles",
   "Declaración jurada de Allegado",
   "Pacto de sustitución de régimen matrimonial",
+  "Renuncia a los gananciales",
   "Compraventa de acciones (Empresa en un Día)",
   "Constitución de sociedades",
 ]) {

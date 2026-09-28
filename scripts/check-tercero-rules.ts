@@ -22,6 +22,10 @@ import {
   sincronizarOrigenDesdeMandato,
 } from "../src/features/pasos/bienes-vinculados-rules";
 import {
+  DOCUMENTO_DOMINIO_VIGENTE,
+  DOCUMENTO_INSCRIPCION_CONSERVATORIA,
+} from "../src/features/pasos/documentos-rules";
+import {
   obtenerCoincidenciaApoderado,
   obtenerNombreMandatoFirma,
   requierenDefinirFirmaConjunta,
@@ -89,6 +93,10 @@ const presentacionesEspecificas = [
     bajada: "Completa los datos de la persona que recibirá el establecimiento comercial.",
   },
   {
+    contratos: ["Compraventa de derecho de llaves"],
+    bajada: "Completa los datos de la persona que recibirá el derecho de llaves.",
+  },
+  {
     contratos: ["Compraventa de patente comercial"],
     bajada: "Completa los datos de la persona que recibirá la patente comercial.",
   },
@@ -134,6 +142,10 @@ assert.deepEqual(obtenerPresentacionPasoTercero("Mandato con autocontrato"), {
 assert.deepEqual(obtenerPresentacionPasoTercero("Resciliación"), {
   titulo: "Datos de la otra parte del contrato",
   bajada: "Ingresa los datos de la persona con quien celebraste el contrato que quieres resciliar.",
+});
+assert.deepEqual(obtenerPresentacionPasoTercero("Cancelación de precio"), {
+  titulo: "Persona compradora o vendedora",
+  bajada: "Ingresa los datos de quien realizó contigo la compraventa del inmueble.",
 });
 assert.deepEqual(obtenerPresentacionPasoTercero("Renuncia a los gananciales"), {
   titulo: "Datos de tu cónyuge",
@@ -242,6 +254,12 @@ assert.deepEqual(obtenerSecuenciaPasosGestion("Resciliación", false, "Soltero/a
   "tercero",
   "documentos",
 ]);
+assert.deepEqual(obtenerSecuenciaPasosGestion("Cancelación de precio", true, "Soltero/a", ""), [
+  "datos-personales",
+  "datos-especificos",
+  "tercero",
+  "documentos",
+]);
 const pasosMandato = obtenerSecuenciaPasosGestion("Mandato", true, "Soltero/a", "");
 assert.equal(
   obtenerPrimerPasoPendienteGestion(pasosMandato, {
@@ -298,7 +316,7 @@ assert.equal(
 );
 assert.deepEqual(
   obtenerSecuenciaPasosGestion("Renuncia a los gananciales", false, "Divorciado/a", ""),
-  ["datos-personales", "conyuge", "documentos"],
+  ["datos-personales", "conyuge"],
 );
 assert.equal(obtenerModoCapturaTercero("Resciliación"), "soloTercero");
 assert.equal(obtenerModoCapturaTercero("Transferencia de vehículo RC"), "registroCivilVehiculo");
@@ -308,6 +326,7 @@ assert.equal(esContratoConSegundoSocio("Constitución de sociedades"), true);
 assert.equal(debeMostrarPasoDocumentos("Constitución de sociedades"), false);
 assert.equal(debeMostrarPasoDocumentos("Compraventa de bienes muebles"), false);
 assert.equal(debeMostrarPasoDocumentos("Comodato de bienes muebles"), false);
+assert.equal(debeMostrarPasoDocumentos("Renuncia a los gananciales"), false);
 assert.equal(debeMostrarPasoDocumentos("Compraventa de inmueble"), true);
 assert.equal(obtenerModoCapturaTercero("Constitución de sociedades"), "segundoSocio");
 assert.equal(debeMostrarPasoTercero("Constitución de sociedades", "eirl"), false);
@@ -331,6 +350,17 @@ assert.deepEqual(
 assert.equal(CONTRATOS_DISPONIBLES.includes("Otro"), false);
 assert.equal(CONTRATOS_DISPONIBLES.includes("Resciliación"), true);
 assert.equal(CONTRATOS_DISPONIBLES.includes("Renuncia a los gananciales"), true);
+assert.equal(CONTRATOS_DISPONIBLES.includes("Cancelación de precio"), true);
+assert.equal(CONTRATOS_DISPONIBLES.includes("Compraventa de establecimiento comercial"), true);
+assert.equal(CONTRATOS_DISPONIBLES.includes("Compraventa de derecho de llaves"), true);
+assert.match(
+  generarGestionDesdePlantilla("Compraventa de establecimiento comercial").resumen,
+  /tangibles/,
+);
+assert.match(
+  generarGestionDesdePlantilla("Compraventa de derecho de llaves").resumen,
+  /intangible/,
+);
 assert.equal(
   CONTRATOS_DISPONIBLES.includes("Declaración jurada de dominio de bienes muebles"),
   false,
@@ -338,6 +368,12 @@ assert.equal(
 const resciliacion = generarGestionDesdePlantilla("Resciliación");
 assert.equal(resciliacion.requiereDatosBien, false);
 assert.equal("identificadorBien" in resciliacion, false);
+const cancelacionPrecio = generarGestionDesdePlantilla("Cancelación de precio");
+assert.equal(cancelacionPrecio.requiereDatosBien, true);
+assert.deepEqual(
+  cancelacionPrecio.documentos.map((documento) => documento.nombre),
+  [DOCUMENTO_DOMINIO_VIGENTE, DOCUMENTO_INSCRIPCION_CONSERVATORIA],
+);
 assert.deepEqual(generarGestionDesdePlantilla("Constitución de sociedades").documentos, []);
 assert.deepEqual(generarGestionDesdePlantilla("Compraventa de bienes muebles").documentos, []);
 assert.deepEqual(generarGestionDesdePlantilla("Comodato de bienes muebles").documentos, []);
@@ -912,4 +948,4 @@ assert.deepEqual(
 console.log("✓ Reglas de tercero y cónyuge válidas");
 console.log(`  ${contratosConConyugeCondicional.length} contratos con cónyuge condicional`);
 console.log("  3 contratos exclusivos de cónyuge");
-console.log("  5 contratos con bajada específica para su tercero de confianza");
+console.log("  6 contratos con bajada específica para su tercero de confianza");

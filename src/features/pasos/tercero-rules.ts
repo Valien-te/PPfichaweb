@@ -58,6 +58,7 @@ const CONTRATOS_SIN_DOCUMENTOS = new Set(
     "Comodato de bienes muebles",
     "Declaración jurada de Allegado",
     "Pacto de sustitución de régimen matrimonial",
+    "Renuncia a los gananciales",
     "Compraventa de acciones (Empresa en un Día)",
   ].map(normalizarValorRegla),
 );
@@ -125,6 +126,13 @@ export function obtenerPresentacionPasoTercero(nombreContrato: string): Presenta
     };
   }
 
+  if (contrato === normalizarValorRegla("Cancelación de precio")) {
+    return {
+      titulo: "Persona compradora o vendedora",
+      bajada: "Ingresa los datos de quien realizó contigo la compraventa del inmueble.",
+    };
+  }
+
   if (contrato.includes("compraventa de acciones")) {
     return {
       titulo: "Datos de tu tercero de confianza",
@@ -136,6 +144,13 @@ export function obtenerPresentacionPasoTercero(nombreContrato: string): Presenta
     return {
       titulo: "Datos de tu tercero de confianza",
       bajada: "Completa los datos de la persona que recibirá el establecimiento comercial.",
+    };
+  }
+
+  if (contrato.includes("compraventa de derecho de llaves")) {
+    return {
+      titulo: "Datos de tu tercero de confianza",
+      bajada: "Completa los datos de la persona que recibirá el derecho de llaves.",
     };
   }
 

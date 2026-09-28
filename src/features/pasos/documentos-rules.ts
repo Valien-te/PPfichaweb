@@ -167,6 +167,8 @@ export function resolverDocumentosGestion(
       .includes(contrato)
   ) {
     nombres = DOCUMENTOS_INMUEBLE;
+  } else if (contrato === normalizarContrato("Cancelación de precio")) {
+    nombres = [DOCUMENTO_DOMINIO_VIGENTE, DOCUMENTO_INSCRIPCION_CONSERVATORIA];
   } else if (contrato === normalizarContrato("Cesión de derechos hereditarios")) {
     // Los tres certificados se piden por inmueble; la posesión efectiva se pide una vez.
     return [
@@ -203,7 +205,8 @@ export function resolverDocumentosGestion(
     nombres = ["Comprobante de transferencia"];
   } else if (
     contrato === normalizarContrato("Compraventa de acciones (Régimen tradicional)") ||
-    contrato === normalizarContrato("Compraventa de establecimiento comercial")
+    contrato === normalizarContrato("Compraventa de establecimiento comercial") ||
+    contrato === normalizarContrato("Compraventa de derecho de llaves")
   ) {
     nombres = DOCUMENTOS_SOCIEDAD_TRADICIONAL;
   } else if (contrato === normalizarContrato("Compraventa de patente comercial")) {
@@ -222,6 +225,7 @@ export function resolverDocumentosGestion(
       "Comodato de bienes muebles",
       "Declaración jurada de Allegado",
       "Pacto de sustitución de régimen matrimonial",
+      "Renuncia a los gananciales",
       "Compraventa de acciones (Empresa en un Día)",
       "Constitución de sociedades",
     ]

@@ -173,8 +173,10 @@ o la función que cumple la persona:
 | Compraventa de acciones (Régimen tradicional) | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá tus acciones o derechos sociales.                         |
 | Compraventa de acciones (Empresa en un Día)   | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá tus acciones o derechos sociales.                         |
 | Compraventa de establecimiento comercial      | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá el establecimiento comercial.                             |
+| Compraventa de derecho de llaves               | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá el derecho de llaves.                                      |
 | Compraventa de patente comercial              | Datos de tu tercero de confianza | Completa los datos de la persona que recibirá la patente comercial.                                     |
 | Aporte inmobiliario SRL                       | Datos de tu tercero de confianza | Completa los datos de la persona que participará contigo en la sociedad a la que aportarás el inmueble. |
+| Cancelación de precio                         | Persona compradora o vendedora   | Ingresa los datos de quien realizó contigo la compraventa del inmueble.                                 |
 
 Los demás terceros de confianza conservan la bajada general: “Ingresa los datos de la
 persona que elegiste para transferirle tus bienes”. Cónyuges, segundos socios, apoderados,
@@ -304,9 +306,11 @@ Ningún contrato solicita una copia de la cédula de identidad como archivo.
 | Transferencia de vehículo RC                 | Comprobante de transferencia                                                  |
 | Compraventa de acciones, régimen tradicional | Constitución; inscripción con anotaciones; vigencia; libro de accionistas     |
 | Compraventa de establecimiento comercial     | Constitución; inscripción con anotaciones; vigencia; libro de accionistas     |
+| Compraventa de derecho de llaves              | Constitución; inscripción con anotaciones; vigencia; libro de accionistas     |
 | Compraventa de patente comercial             | Documentos societarios solo si fue constituida por escritura pública          |
 | Contrato de arriendo                         | Dominio vigente                                                               |
 | Aporte inmobiliario SRL                      | Dominio vigente; inscripción conservatoria; hipotecas y gravámenes            |
+| Cancelación de precio                        | Dominio vigente; inscripción conservatoria                                    |
 | Resciliación                                 | Copia del contrato que se dejará sin efecto                                   |
 | Mandato y mandato con autocontrato           | Los mismos documentos y estados del contrato principal                        |
 
@@ -316,6 +320,7 @@ No requieren documentos:
 - Comodato de bienes muebles.
 - Declaración jurada de allegado.
 - Pacto de sustitución de régimen matrimonial.
+- Renuncia a los gananciales.
 - Compraventa de acciones (Empresa en un Día).
 - Constitución de sociedades.
 - Compraventa de patente comercial constituida mediante Empresa en un Día.

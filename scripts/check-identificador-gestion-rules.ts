@@ -10,6 +10,7 @@ import {
 const contratosConDireccion = [
   "Compraventa de Inmueble",
   "Cancelación y Alzamiento de Hipoteca",
+  "Cancelación de precio",
   "Compraventa de Inmueble y usufructo",
   "Cesión de derechos",
   "Compraventa de nuda propiedad",
@@ -90,6 +91,7 @@ const contratosSinIdentificador = [
   "Mandato con autocontrato",
   "Liquidación de sociedad conyugal",
   "Compraventa de establecimiento comercial",
+  "Compraventa de derecho de llaves",
   "Compraventa de patente comercial",
   "Pacto de sustitución de régimen matrimonial",
   "Renuncia a los gananciales",

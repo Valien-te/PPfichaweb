@@ -595,7 +595,7 @@ export function PasoDatosEspecificos({
       return true;
     }
 
-    if (isGroupAllegado() || isGroupArriendo() || isGroupHipoteca()) {
+    if (isGroupAllegado() || isGroupArriendo() || isGroupCancelacionInmueble()) {
       return (
         tieneValor(valores.direccion) && tieneValor(valores.comuna) && tieneValor(valores.region)
       );
@@ -837,7 +837,7 @@ export function PasoDatosEspecificos({
           }
         }
       }
-    } else if (isGroupAllegado() || isGroupArriendo() || isGroupHipoteca()) {
+    } else if (isGroupAllegado() || isGroupArriendo() || isGroupCancelacionInmueble()) {
       if (
         !tieneValor(valores.direccion) ||
         !tieneValor(valores.comuna) ||
@@ -1034,7 +1034,10 @@ export function PasoDatosEspecificos({
     return norm.includes("establecimiento") || norm.includes("derecho de llaves");
   };
 
-  const isGroupHipoteca = () => normalizar(nombreContrato).includes("hipoteca");
+  const isGroupCancelacionInmueble = () => {
+    const contrato = normalizar(nombreContrato);
+    return contrato.includes("hipoteca") || contrato === "cancelacion de precio";
+  };
 
   const isGroupPrenda = () => normalizar(nombreContrato).includes("prenda");
 
@@ -2361,8 +2364,8 @@ export function PasoDatosEspecificos({
               </section>
             )}
 
-            {/* ── GRUPO 7, 8 y 12: Dirección Simple (Allegado, Arriendo, Hipoteca) ── */}
-            {(isGroupAllegado() || isGroupArriendo() || isGroupHipoteca()) && (
+            {/* ── GRUPO 7, 8 y 12: Dirección simple ── */}
+            {(isGroupAllegado() || isGroupArriendo() || isGroupCancelacionInmueble()) && (
               <div className="grid gap-4">
                 <div className="grid gap-1.5">
                   <Label htmlFor="direccion">Domicilio / Dirección</Label>
@@ -3043,7 +3046,7 @@ export function PasoDatosEspecificos({
               !esMandato() &&
               !isGroupPatente() &&
               !isGroupEstablecimiento() &&
-              !isGroupHipoteca() &&
+              !isGroupCancelacionInmueble() &&
               !isGroupPrenda() &&
               !isGroupMatrimonial() && (
                 <div className="grid gap-4">

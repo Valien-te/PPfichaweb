@@ -14,6 +14,7 @@ const CONTRATOS_CON_DIRECCION = new Set(
     "Compraventa de nuda propiedad",
     "Cesión de derechos",
     "Cancelación y Alzamiento de Hipoteca",
+    "Cancelación de precio",
     "Contrato de arriendo",
     "Aporte inmobiliario SRL",
   ].map(normalizarContrato),

@@ -1698,6 +1698,7 @@ export const prototypeDataContract = definePrototypeDataContract({
           enumValues: [
             "Compraventa de Inmueble",
             "Cancelación y Alzamiento de Hipoteca",
+            "Cancelación de precio",
             "Compraventa de Inmueble y usufructo",
             "Cesión de derechos",
             "Compraventa de nuda propiedad",
@@ -1718,6 +1719,7 @@ export const prototypeDataContract = definePrototypeDataContract({
             "Compraventa de acciones (Empresa en un Día)",
             "Constitución de sociedades",
             "Compraventa de establecimiento comercial",
+            "Compraventa de derecho de llaves",
             "Compraventa de patente comercial",
             "Contrato de arriendo",
             "Aporte inmobiliario SRL",
@@ -1803,7 +1805,7 @@ export const prototypeDataContract = definePrototypeDataContract({
             "Texto breve que distingue la gestión en la card del portal a partir del bien o sociedad informado.",
           dataType: "string",
           derivation:
-            "Muestra direccion en contratos de inmueble, arriendo y aporte inmobiliario; patente en contratos de vehículo; razonSocial en compraventas de acciones; nombreSociedad en constitución de sociedades. En cesión de derechos hereditarios muestra la única dirección o, si existen varias, la cantidad con el formato '(N inmuebles)'. Los demás contratos no muestran identificador.",
+            "Muestra direccion en contratos de inmueble, cancelaciones inmobiliarias, arriendo y aporte inmobiliario; patente en contratos de vehículo; razonSocial en compraventas de acciones; nombreSociedad en constitución de sociedades. En cesión de derechos hereditarios muestra la única dirección o, si existen varias, la cantidad con el formato '(N inmuebles)'. Los demás contratos no muestran identificador.",
           required: false,
           usage: {
             visible: true,

@@ -350,6 +350,7 @@ export function PasoTercero({
     esSegundoSocio && requiereDatosAdministradorSociedad(tipoSociedad, administradorSociedad);
   const esRepresentanteSociedadAnonima = tipoSociedad === "sa";
   const esResciliacion = () => normalizar(nombreContrato).includes("resciliacion");
+  const esCancelacionPrecio = () => normalizar(nombreContrato) === "cancelacion de precio";
   const presentacionPasoTercero = obtenerPresentacionPasoTercero(nombreContrato);
 
   const esCompraventaOCesionOAcciones = () => {
@@ -1340,9 +1341,11 @@ export function PasoTercero({
                               ? "La persona apoderada debe ser distinta de ti. Ingresa el RUT de otra persona."
                               : esSegundoSocio
                                 ? "El segundo socio debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
-                                : esResciliacion()
-                                  ? "La otra parte del contrato debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
-                                  : "El tercero de confianza debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
+                                : esCancelacionPrecio()
+                                  ? "La persona compradora o vendedora debe ser distinta de ti. Ingresa el RUT de otra persona."
+                                  : esResciliacion()
+                                    ? "La otra parte del contrato debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
+                                    : "El tercero de confianza debe ser una persona distinta de ti. Ingresa el RUT de otra persona."
                             : "La persona apoderada debe ser distinta de la otra parte del contrato. Ingresa el RUT de otra persona."}
                         </span>
                       </p>

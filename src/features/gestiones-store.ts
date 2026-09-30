@@ -31,6 +31,12 @@ import {
 import { evaluarLimiteTerceroInmobiliario } from "./pasos/tercero-inmobiliario-rules";
 import { esMayorDeEdad, resolverDocumentosFacultadesMentales } from "./pasos/tercero-risk-rules";
 import {
+  obtenerCoincidenciaRutUsufructuario,
+  requierePasoUsufructo,
+  type TitularUsufructo,
+  usufructuarioCumpleMayoriaEdad,
+} from "./pasos/usufructo-rules";
+import {
   CONTRATO_LIQUIDACION_SOCIEDAD_CONYUGAL,
   CONTRATO_PACTO_SUSTITUCION_REGIMEN,
   REGIMEN_DESTINO_PACTO_SUSTITUCION,
@@ -108,16 +114,20 @@ export type SegundoSocioDatos = PersonaSociedadDatos & {
 
 export type AdministradorSociedadDatos = PersonaSociedadDatos;
 export type ConyugeTerceroDatos = PersonaSociedadDatos;
+export type UsufructuarioDatos = PersonaSociedadDatos;
 
 export interface GestionState extends Gestion {
   datosPersonalesConfirmados: boolean;
   datosEspecificosCompletos: boolean;
   conyugeCompleto: boolean;
   terceroCompleto: boolean;
+  usufructuarioCompleto: boolean;
   documentosEstado: DocumentoEstado[];
   valoresEspecificos?: Record<string, unknown>;
   datosConyuge?: ConyugeDatos;
   datosTercero?: TerceroDatos;
+  titularUsufructo?: TitularUsufructo;
+  datosUsufructuario?: UsufructuarioDatos;
   datosConyugeTercero?: ConyugeTerceroDatos;
   datosSegundoSocio?: SegundoSocioDatos;
   datosAdministradorSociedad?: AdministradorSociedadDatos;
@@ -144,6 +154,7 @@ let gestiones: GestionState[] = gestionesMock.map((g) => {
     datosEspecificosCompletos: !g.requiereDatosBien || g.estado !== "pendiente_datos",
     conyugeCompleto: g.estado !== "pendiente_datos",
     terceroCompleto: g.estado !== "pendiente_datos",
+    usufructuarioCompleto: !requierePasoUsufructo(g.nombre) || g.estado !== "pendiente_datos",
     documentosEstado: g.documentos.map((documento) => ({
       ...documento,
       estadoRevision:
@@ -185,7 +196,12 @@ function calcularAvance(g: GestionState): number {
 
   if (g.datosPersonalesConfirmados) avance += 15; // 25%
   if (g.datosEspecificosCompletos) avance += 25; // 50%
-  if (g.terceroCompleto) avance += 20; // 70%
+  if (requierePasoUsufructo(g.nombre)) {
+    if (g.terceroCompleto) avance += 10;
+    if (g.usufructuarioCompleto) avance += 10; // 70%
+  } else if (g.terceroCompleto) {
+    avance += 20; // 70%
+  }
 
   // Documentos
   if (g.documentosEstado && g.documentosEstado.length > 0) {
@@ -397,7 +413,11 @@ export function completarDatosEspecificos(gestionId: string, valores?: Record<st
             ? ("pendiente_datos" as EstadoGestion)
             : g.estado,
       };
-      if (updated.datosPersonalesConfirmados && updated.terceroCompleto) {
+      if (
+        updated.datosPersonalesConfirmados &&
+        updated.terceroCompleto &&
+        (!requierePasoUsufructo(updated.nombre) || updated.usufructuarioCompleto)
+      ) {
         updated.estado = "faltan_documentos" as EstadoGestion;
       }
       updated.avance = calcularAvance(updated);
@@ -607,7 +627,8 @@ export function guardarDatosConyuge(
     if (
       updated.datosPersonalesConfirmados &&
       updated.datosEspecificosCompletos &&
-      updated.terceroCompleto
+      updated.terceroCompleto &&
+      (!requierePasoUsufructo(updated.nombre) || updated.usufructuarioCompleto)
     ) {
       updated.estado = "faltan_documentos" as EstadoGestion;
     }
@@ -667,7 +688,11 @@ export function completarTercero(
             ? { ...datosOtorganteMandato }
             : g.datosOtorganteMandato,
     };
-    if (updated.datosPersonalesConfirmados && updated.datosEspecificosCompletos) {
+    if (
+      updated.datosPersonalesConfirmados &&
+      updated.datosEspecificosCompletos &&
+      (!requierePasoUsufructo(updated.nombre) || updated.usufructuarioCompleto)
+    ) {
       updated.estado = "faltan_documentos" as EstadoGestion;
     }
     return updated;
@@ -689,6 +714,49 @@ export function completarTercero(
         gestionActualizada?.documentosEstado.map((documento) => ({ ...documento })) ?? [],
     }));
   }
+
+  return true;
+}
+
+export function completarUsufructo(
+  gestionId: string,
+  titularUsufructo: TitularUsufructo,
+  datosUsufructuario?: UsufructuarioDatos,
+): boolean {
+  const gestionActual = gestiones.find((gestion) => gestion.id === gestionId);
+  if (!gestionActual || !requierePasoUsufructo(gestionActual.nombre)) return false;
+
+  if (titularUsufructo === "otraPersona") {
+    if (!datosUsufructuario) return false;
+    if (!usufructuarioCumpleMayoriaEdad(datosUsufructuario.fechaNacimiento)) return false;
+
+    const coincidencia = obtenerCoincidenciaRutUsufructuario(
+      datosUsufructuario.rut,
+      getClienteDatos().rut,
+      gestionActual.datosTercero?.rut ?? "",
+    );
+    if (coincidencia) return false;
+  }
+
+  updateGestion(gestionId, (gestion) => {
+    const updated = {
+      ...gestion,
+      titularUsufructo,
+      datosUsufructuario:
+        titularUsufructo === "otraPersona" && datosUsufructuario
+          ? { ...datosUsufructuario }
+          : undefined,
+      usufructuarioCompleto: true,
+    };
+    if (
+      updated.datosPersonalesConfirmados &&
+      updated.datosEspecificosCompletos &&
+      updated.terceroCompleto
+    ) {
+      updated.estado = "faltan_documentos" as EstadoGestion;
+    }
+    return updated;
+  });
 
   return true;
 }
@@ -812,6 +880,7 @@ export function sincronizarMandatoFirma(gestionOrigenId: string, tipoMandato?: T
     datosEspecificosCompletos,
     conyugeCompleto: conservaProgresoAnterior ? (mandatoAnterior?.conyugeCompleto ?? false) : false,
     terceroCompleto,
+    usufructuarioCompleto: true,
     documentosEstado: origen.documentosEstado.map((documento) => ({ ...documento })),
     valoresEspecificos,
     gestionOrigenId,
@@ -970,6 +1039,10 @@ export function simularEstadoDocumento(
       datosEspecificosCompletos: true,
       conyugeCompleto: true,
       terceroCompleto: true,
+      usufructuarioCompleto: true,
+      titularUsufructo: requierePasoUsufructo(gestion.nombre)
+        ? (gestion.titularUsufructo ?? "cliente")
+        : gestion.titularUsufructo,
       documentosEstado,
     };
     gestionActualizada.avance = calcularAvance(gestionActualizada);
@@ -1006,6 +1079,7 @@ export function simularLimiteTerceroInmobiliario(): string {
         datosEspecificosCompletos: true,
         conyugeCompleto: true,
         terceroCompleto: false,
+        usufructuarioCompleto: true,
         valoresEspecificos: { ...fixture.valoresGestionActual },
         datosTercero: { ...fixture.datosTercero },
       };
@@ -1031,6 +1105,7 @@ export function simularLimiteTerceroInmobiliario(): string {
     datosEspecificosCompletos: true,
     conyugeCompleto: true,
     terceroCompleto: true,
+    usufructuarioCompleto: true,
     documentosEstado: documentosAporte.map((documento) => ({ ...documento })),
     valoresEspecificos: {
       direccion: "Los Alerces 450",
@@ -1063,6 +1138,8 @@ export function agregarGestion(nuevaGestion: Gestion) {
       !nuevaGestion.requiereDatosBien || nuevaGestion.estado !== "pendiente_datos",
     conyugeCompleto: nuevaGestion.estado !== "pendiente_datos",
     terceroCompleto: nuevaGestion.estado !== "pendiente_datos",
+    usufructuarioCompleto:
+      !requierePasoUsufructo(nuevaGestion.nombre) || nuevaGestion.estado !== "pendiente_datos",
     documentosEstado: nuevaGestion.documentos.map((documento) => ({
       ...documento,
       estadoRevision:
@@ -1094,6 +1171,11 @@ export function actualizarEstadoGestion(gestionId: string, nuevoEstado: EstadoGe
       datosEspecificosCompletos: !g.requiereDatosBien || nuevoEstado !== "pendiente_datos",
       conyugeCompleto: nuevoEstado !== "pendiente_datos",
       terceroCompleto: nuevoEstado !== "pendiente_datos",
+      usufructuarioCompleto: !requierePasoUsufructo(g.nombre) || nuevoEstado !== "pendiente_datos",
+      titularUsufructo:
+        requierePasoUsufructo(g.nombre) && nuevoEstado !== "pendiente_datos"
+          ? (g.titularUsufructo ?? "cliente")
+          : g.titularUsufructo,
       documentosEstado: g.documentosEstado.map((documento) => ({
         ...documento,
         estadoRevision:

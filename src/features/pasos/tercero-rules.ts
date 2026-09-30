@@ -1,4 +1,5 @@
 import { esTransferenciaVehiculoRegistroCivil } from "./registro-civil-vehiculo-rules";
+import { requierePasoUsufructo } from "./usufructo-rules";
 
 /**
  * Fuente de verdad para construir el camino de la ficha y decidir quién comparece.
@@ -16,13 +17,14 @@ export type ModoCapturaTercero =
   | "registroCivilVehiculo";
 
 export type PasoGestionId =
-  "datos-personales" | "conyuge" | "datos-especificos" | "tercero" | "documentos";
+  "datos-personales" | "conyuge" | "datos-especificos" | "tercero" | "usufructo" | "documentos";
 
 export interface CompletitudPasosGestion {
   datosPersonalesConfirmados: boolean;
   conyugeCompleto: boolean;
   datosEspecificosCompletos: boolean;
   terceroCompleto: boolean;
+  usufructuarioCompleto?: boolean;
 }
 
 export interface PresentacionPasoTercero {
@@ -316,6 +318,9 @@ export function obtenerSecuenciaPasosGestion(
   if (debeMostrarPasoTercero(nombreContrato, tipoSociedad)) {
     pasos.push("tercero");
   }
+  if (requierePasoUsufructo(nombreContrato)) {
+    pasos.push("usufructo");
+  }
   if (debeMostrarPasoDocumentos(nombreContrato, tieneDocumentos)) {
     pasos.push("documentos");
   }
@@ -338,6 +343,7 @@ export function obtenerPrimerPasoPendienteGestion(
     if (paso === "conyuge" && !completitud.conyugeCompleto) return paso;
     if (paso === "datos-especificos" && !completitud.datosEspecificosCompletos) return paso;
     if (paso === "tercero" && !completitud.terceroCompleto) return paso;
+    if (paso === "usufructo" && !completitud.usufructuarioCompleto) return paso;
     if (paso === "documentos") return paso;
   }
 

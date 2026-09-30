@@ -26,5 +26,12 @@ export const mockGenerationProfile = defineMockGenerationProfile({
   },
   entityKeys: {},
   relationBindings: {},
-  fieldHints: {},
+  fieldHints: {
+    "usufructuario.rut": { semantic: "rutCl", rutValidation: "formatOnly" },
+    "usufructuario.email": { semantic: "email" },
+    "usufructuario.fechaNacimiento": { semantic: "dateCl" },
+    "usufructuario.comuna": { semantic: "communeCl" },
+    "usufructuario.region": { semantic: "regionCl" },
+    "usufructuario.domicilio": { semantic: "addressCl" },
+  },
 });

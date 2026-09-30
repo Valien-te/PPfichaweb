@@ -8,7 +8,7 @@ import { definePrototypeMockScenarios } from "./simulator-contract-schema";
  */
 export const prototypeMockScenarios = definePrototypeMockScenarios({
   scenariosVersion: "1",
-  datasetVersion: 3,
+  datasetVersion: 4,
   defaultScenarioId: "base",
   scenarios: {
     base: {
@@ -16,7 +16,9 @@ export const prototypeMockScenarios = definePrototypeMockScenarios({
       name: "Recorrido principal",
       description:
         "Recorrido principal con una cesión de derechos hereditarios lista para probar la carga de documentos.",
-      entities: {},
+      entities: {
+        usufructuario: [{ titularUsufructo: "cliente" }],
+      },
     },
     empty: {
       id: "empty",
@@ -28,8 +30,29 @@ export const prototypeMockScenarios = definePrototypeMockScenarios({
       id: "edgeCases",
       name: "Casos límite",
       description:
-        "Casos especiales, incluido el límite de dos escrituras inmobiliarias por tercero de confianza.",
-      entities: {},
+        "Casos especiales, incluido el límite de dos escrituras inmobiliarias por tercero de confianza y una persona usufructuaria distinta del cliente.",
+      entities: {
+        usufructuario: [
+          {
+            titularUsufructo: "otraPersona",
+            nombres: "Camila Andrea",
+            apellidoPaterno: "Fuentes",
+            apellidoMaterno: "Morales",
+            rut: "16274891-5",
+            email: "camila.fuentes@example.com",
+            fechaNacimiento: "1991-04-18",
+            nacionalidad: "Chilena",
+            profesion: "Arquitecta",
+            estadoCivil: "Casado/a",
+            regimenMatrimonial: "Separación de bienes",
+            domicilio: "Los Olmos 815, departamento 302",
+            comuna: "Ñuñoa",
+            region: "Metropolitana",
+            esMayorEdad: true,
+            coincideConTerceroConfianza: false,
+          },
+        ],
+      },
     },
   },
 });

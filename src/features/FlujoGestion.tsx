@@ -31,6 +31,7 @@ import { PasoDatosPersonales } from "./pasos/PasoDatosPersonales";
 import { PasoDocumentos } from "./pasos/PasoDocumentos";
 import { PasoRegistroCivilVehiculo } from "./pasos/PasoRegistroCivilVehiculo";
 import { PasoTercero } from "./pasos/PasoTercero";
+import { PasoUsufructo } from "./pasos/PasoUsufructo";
 import { esTransferenciaVehiculoRegistroCivil } from "./pasos/registro-civil-vehiculo-rules";
 import {
   debeMostrarPasoDocumentos,
@@ -45,6 +46,7 @@ const ETIQUETAS_PASOS: Record<PasoGestionId, string> = {
   conyuge: "Cónyuge",
   "datos-especificos": "Datos del bien",
   tercero: "Tercero",
+  usufructo: "Usufructo",
   documentos: "Documentos",
 };
 
@@ -363,6 +365,15 @@ export function FlujoGestion() {
         )}
         {pasoId === "tercero" && !esTransferenciaVehiculoRegistroCivil(gestion.nombre) && (
           <PasoTercero
+            esUltimoPasoFicha={esUltimoPasoFicha}
+            soloLectura={gestion.fichaEnviada}
+            gestionId={gestion.id}
+            onVolver={handleVolver}
+            onSiguiente={handleSiguiente}
+          />
+        )}
+        {pasoId === "usufructo" && (
+          <PasoUsufructo
             esUltimoPasoFicha={esUltimoPasoFicha}
             soloLectura={gestion.fichaEnviada}
             gestionId={gestion.id}

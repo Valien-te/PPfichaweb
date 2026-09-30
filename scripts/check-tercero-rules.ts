@@ -466,6 +466,23 @@ assert.deepEqual(obtenerSecuenciaPasosGestion("Compraventa de inmueble", true, "
   "documentos",
 ]);
 assert.deepEqual(
+  obtenerSecuenciaPasosGestion("Compraventa de inmueble y usufructo", true, "Soltero/a", ""),
+  ["datos-personales", "datos-especificos", "tercero", "usufructo", "documentos"],
+);
+assert.equal(
+  obtenerPrimerPasoPendienteGestion(
+    ["datos-personales", "datos-especificos", "tercero", "usufructo", "documentos"],
+    {
+      datosPersonalesConfirmados: true,
+      conyugeCompleto: true,
+      datosEspecificosCompletos: true,
+      terceroCompleto: true,
+      usufructuarioCompleto: false,
+    },
+  ),
+  "usufructo",
+);
+assert.deepEqual(
   obtenerSecuenciaPasosGestion(
     "Liquidación de sociedad conyugal",
     true,

@@ -53,6 +53,8 @@ export function generarGestionDesdePlantilla(nombreContrato: string): Gestion {
       "Preparación de los antecedentes necesarios para formalizar la renuncia a los gananciales.",
     "Cancelación de precio":
       "Declaración mediante escritura de que el precio de la compraventa del inmueble ya fue pagado.",
+    "Compraventa de Inmueble y usufructo":
+      "Transferencia de un inmueble a un tercero de confianza, conservando el derecho de uso y sus beneficios para ti o para otra persona.",
     "Transferencia de vehículo RC":
       "Transferencia del vehículo directamente en el Registro Civil mediante declaración consensual, sin preparar un contrato notarial.",
     "Compraventa de establecimiento comercial":
